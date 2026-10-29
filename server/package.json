@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node --watch server.js",
     "start": "node server.js",
-    "check": "node --check app.js && node --check server.js && node --check config/database.js && node --check models/Candidate.js && node --check models/RecruitingChannel.js && node --check routes/candidates.js && node --check routes/channels.js && node --check utils/requestValidation.js && node --check app.test.js",
+    "check": "node --check app.js && node --check server.js && node --check config/database.js && node --check models/Candidate.js && node --check models/RecruitingChannel.js && node --check routes/analytics.js && node --check routes/candidates.js && node --check routes/channels.js && node --check utils/requestValidation.js && node --check app.test.js",
     "test": "node --test"
   },
   "dependencies": {

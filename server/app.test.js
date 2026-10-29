@@ -42,6 +42,117 @@ test('health endpoint reports the active MongoDB connection', async () => {
   assert.deepEqual(response.body, { status: 'ok', database: 'connected' })
 })
 
+test('analytics overview returns all-time metrics and a zero-filled monthly trend', async () => {
+  const channel = await createChannel()
+  const now = new Date()
+  const appliedAt = new Date(now.getTime() - (20 * 86400000))
+  const hiredAt = new Date(now.getTime() - (10 * 86400000))
+  await Candidate.create([
+    {
+      fullName: 'Hired Candidate',
+      role: 'Engineer',
+      source: channel._id,
+      stage: 'Hired',
+      qualityScore: 5,
+      appliedAt,
+      hiredAt,
+    },
+    {
+      fullName: 'Active Candidate',
+      role: 'Designer',
+      source: channel._id,
+      stage: 'Interview',
+      qualityScore: 3,
+      appliedAt: now,
+    },
+  ])
+
+  const response = await request(app).get('/api/analytics/overview?months=3')
+
+  assert.equal(response.status, 200)
+  assert.deepEqual(response.body.data.totals, {
+    candidates: 2,
+    hires: 1,
+    averageDaysToHire: 10,
+  })
+  assert.deepEqual(response.body.data.stages, [
+    { stage: 'Applied', count: 0 },
+    { stage: 'Screening', count: 0 },
+    { stage: 'Interview', count: 1 },
+    { stage: 'Offer', count: 0 },
+    { stage: 'Hired', count: 1 },
+  ])
+  assert.equal(response.body.data.trend.length, 3)
+  assert.equal(response.body.data.trend[2].applicants, 2)
+  assert.equal(response.body.data.trend[2].hires, 1)
+  assert.deepEqual(response.body.data.trend.slice(0, 2).map(({ applicants, hires }) => ({
+    applicants,
+    hires,
+  })), [
+    { applicants: 0, hires: 0 },
+    { applicants: 0, hires: 0 },
+  ])
+})
+
+test('analytics overview validates the requested trend window', async () => {
+  const response = await request(app).get('/api/analytics/overview?months=13')
+
+  assert.equal(response.status, 400)
+  assert.equal(response.body.error, 'months must be an integer between 1 and 12.')
+})
+
+test('channel analytics aggregates performance and includes channels without candidates', async () => {
+  const referral = await createChannel({ monthlySpend: 1200 })
+  const careers = await createChannel({ name: 'Careers page', type: 'careers_page' })
+  await Candidate.create([
+    {
+      fullName: 'Hired Candidate',
+      role: 'Engineer',
+      source: referral._id,
+      stage: 'Hired',
+      qualityScore: 5,
+      appliedAt: new Date('2026-10-01T00:00:00.000Z'),
+      hiredAt: new Date('2026-10-11T00:00:00.000Z'),
+    },
+    {
+      fullName: 'Active Candidate',
+      role: 'Designer',
+      source: referral._id,
+      stage: 'Interview',
+      qualityScore: 4,
+      appliedAt: new Date('2026-10-05T00:00:00.000Z'),
+    },
+  ])
+
+  const response = await request(app).get('/api/analytics/channels')
+
+  assert.equal(response.status, 200)
+  assert.deepEqual(response.body.data, [
+    {
+      _id: careers._id,
+      name: 'Careers page',
+      type: 'careers_page',
+      isActive: true,
+      monthlySpend: 0,
+      applicants: 0,
+      hires: 0,
+      hireRate: 0,
+      averageQualityScore: null,
+    },
+    {
+      _id: referral._id,
+      name: 'Employee referral',
+      type: 'referral',
+      isActive: true,
+      monthlySpend: 1200,
+      applicants: 2,
+      hires: 1,
+      hireRate: 50,
+      averageQualityScore: 4.5,
+    },
+  ])
+})
+
 test('channel API creates, reads, filters, updates, and deletes database records', async () => {
   const created = await createChannel()
   assert.equal(created.name, 'Employee referral')
