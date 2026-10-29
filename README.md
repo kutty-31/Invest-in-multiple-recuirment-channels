@@ -2,6 +2,24 @@
 
 Talentwise is a responsive recruitment analytics dashboard for comparing hiring sources, monitoring the candidate funnel, and tracking candidate quality.
 
+## Capstone Project Idea
+
+Talentwise will grow into a MERN recruitment-channel intelligence platform for recruiters, people leads, and hiring managers. It will bring candidate pipeline and channel performance data together so teams can compare application volume, hire conversion, candidate quality, time to hire, and recruitment cost, then make better-informed sourcing decisions.
+
+The initial capstone scope includes a recruiting performance dashboard, channel comparison, candidate pipeline management, and actionable insights. The current dashboard is a front-end concept using sample data; the capstone plan below covers the intended full-stack implementation.
+
+## Day-by-Day Capstone Plan
+
+| Day | Plan |
+| --- | --- |
+| Day 1 | Confirm project scope, user needs, success measures, user journeys, and the initial UX wireframes. |
+| Day 2 | Design MongoDB models for candidates, recruiting channels, and hiring activity; scaffold the Express and React applications. |
+| Day 3 | Build the backend API and connect it to MongoDB; implement candidate and recruiting-channel create, read, update, and delete operations. |
+| Day 4 | Build the React dashboard, summary metrics, hiring funnel, and channel comparison views using API data. |
+| Day 5 | Add candidate search and filters, stage updates, date-range controls, and report export. |
+| Day 6 | Test core user journeys and API behavior; fix defects and refine accessibility, responsive layouts, and error handling. |
+| Day 7 | Prepare sample data, deploy the application, document setup and usage, and review the completed capstone against its requirements. |
+
 ## Mock UX Design
 
 Design preview: [Open the interactive Mock UX](https://raw.githack.com/kutty-31/Invest-in-multiple-recuirment-channels/feature/mock-ux-design/mock-ux.html)  
