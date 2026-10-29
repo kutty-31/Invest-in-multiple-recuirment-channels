@@ -27,9 +27,13 @@ Source: [mock-ux.html](https://github.com/kutty-31/Invest-in-multiple-recuirment
 
 This mock UX communicates the primary overview, channel comparison, candidate pipeline, and core hiring journeys. It uses sample data to show how people teams move from hiring insights to recruiting decisions.
 
-## Run the app
+## Run the existing dashboard
 
 No build step, package installation, or framework is required. Open `index.html` in a modern browser, or use a local static-file server such as the VS Code Live Server extension.
+
+## React client
+
+The Vite-powered React frontend prototype is in [`client/`](./client/). From that folder, install dependencies with `npm install` and run the development server with `npm run dev`. See [`client/README.md`](./client/README.md) for all available commands and requirements. This client currently uses sample data and is not connected to a backend.
 
 ## What’s included
 
