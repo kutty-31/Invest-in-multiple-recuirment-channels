@@ -42,6 +42,76 @@ test('health endpoint reports the active MongoDB connection', async () => {
   assert.deepEqual(response.body, { status: 'ok', database: 'connected' })
 })
 
+test('bulk candidate POST creates and populates all valid records', async () => {
+  const channel = await createChannel()
+  const response = await request(app)
+    .post('/api/candidates/bulk')
+    .send({
+      candidates: [
+        { fullName: 'Avery Brooks', role: 'Designer', source: channel._id },
+        { fullName: 'Jordan Lee', role: 'Engineer', source: channel._id, stage: 'Screening' },
+      ],
+    })
+
+  assert.equal(response.status, 201)
+  assert.equal(response.body.count, 2)
+  assert.equal(response.body.data.length, 2)
+  assert.deepEqual(response.body.data.map(({ fullName, source }) => ({
+    fullName,
+    source: source.name,
+  })), [
+    { fullName: 'Avery Brooks', source: 'Employee referral' },
+    { fullName: 'Jordan Lee', source: 'Employee referral' },
+  ])
+  assert.equal(await Candidate.countDocuments(), 2)
+})
+
+test('bulk candidate POST rejects invalid batches without partial writes', async () => {
+  const channel = await createChannel()
+  const missingFields = await request(app)
+    .post('/api/candidates/bulk')
+    .send({
+      candidates: [
+        { fullName: 'Valid Candidate', role: 'Designer', source: channel._id },
+        { fullName: 'Missing Role', source: channel._id },
+      ],
+    })
+
+  assert.equal(missingFields.status, 400)
+  assert.equal(missingFields.body.error, 'Request validation failed.')
+  assert.deepEqual(missingFields.body.records[0].fields, { role: 'Role is required.' })
+  assert.equal(await Candidate.countDocuments(), 0)
+
+  const missingSource = await request(app)
+    .post('/api/candidates/bulk')
+    .send({
+      candidates: [
+        { fullName: 'Candidate With Unknown Source', role: 'Engineer', source: new mongoose.Types.ObjectId() },
+      ],
+    })
+
+  assert.equal(missingSource.status, 422)
+  assert.equal(missingSource.body.records[0].index, 0)
+  assert.equal(await Candidate.countDocuments(), 0)
+})
+
+test('bulk candidate POST validates payload shape and batch size', async () => {
+  const missingArray = await request(app)
+    .post('/api/candidates/bulk')
+    .send({ candidates: 'not-an-array' })
+  assert.equal(missingArray.status, 400)
+
+  const emptyBatch = await request(app)
+    .post('/api/candidates/bulk')
+    .send({ candidates: [] })
+  assert.equal(emptyBatch.status, 400)
+
+  const tooMany = await request(app)
+    .post('/api/candidates/bulk')
+    .send({ candidates: Array.from({ length: 101 }, () => ({})) })
+  assert.equal(tooMany.status, 400)
+})
+
 test('analytics overview returns all-time metrics and a zero-filled monthly trend', async () => {
   const channel = await createChannel()
   const now = new Date()

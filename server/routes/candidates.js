@@ -97,6 +97,83 @@ router.get('/', async (request, response) => {
   return response.json({ data, pagination: { page, limit, total, pages: Math.ceil(total / limit) } })
 })
 
+router.post('/bulk', async (request, response) => {
+  if (!isRecord(request.body) || !Array.isArray(request.body.candidates)) {
+    return response.status(400).json({ error: 'Request body must include a candidates array.' })
+  }
+
+  const { candidates } = request.body
+  if (candidates.length < 1 || candidates.length > 100) {
+    return response.status(400).json({ error: 'Provide between 1 and 100 candidates per request.' })
+  }
+
+  const invalidRecords = []
+  for (const [index, candidate] of candidates.entries()) {
+    if (!isRecord(candidate)) {
+      invalidRecords.push({ index, error: 'Candidate must be a JSON object.' })
+      continue
+    }
+
+    const unexpected = invalidFields(candidate)
+    if (unexpected.length) {
+      invalidRecords.push({ index, error: `Unsupported field: ${unexpected.join(', ')}.` })
+    }
+  }
+  if (invalidRecords.length) {
+    return response.status(400).json({
+      error: 'One or more candidate records are invalid.',
+      records: invalidRecords,
+    })
+  }
+
+  const validSourceIds = [...new Set(
+    candidates
+      .map(({ source }) => source)
+      .filter(isValidObjectId)
+      .map((source) => source.toString()),
+  )]
+  const existingSourceIds = new Set(
+    (await RecruitingChannel.find({ _id: { $in: validSourceIds } }).distinct('_id'))
+      .map((source) => source.toString()),
+  )
+  const invalidSources = candidates.flatMap(({ source }, index) => (
+    isValidObjectId(source) && existingSourceIds.has(source.toString())
+      ? []
+      : [{ index, error: 'Source must refer to an existing recruiting channel.' }]
+  ))
+  if (invalidSources.length) {
+    return response.status(422).json({
+      error: 'One or more candidate records have an invalid source.',
+      records: invalidSources,
+    })
+  }
+
+  const documents = candidates.map((candidate) => new Candidate(candidate))
+  const validationResults = await Promise.allSettled(
+    documents.map((candidate) => candidate.validate()),
+  )
+  const validationErrors = validationResults.flatMap((result, index) => {
+    if (result.status === 'fulfilled') return []
+
+    return [{
+      index,
+      fields: Object.fromEntries(
+        Object.entries(result.reason.errors).map(([field, detail]) => [field, detail.message]),
+      ),
+    }]
+  })
+  if (validationErrors.length) {
+    return response.status(400).json({
+      error: 'Request validation failed.',
+      records: validationErrors,
+    })
+  }
+
+  const created = await Candidate.insertMany(documents)
+  await Candidate.populate(created, { path: 'source', select: 'name type' })
+  return response.status(201).json({ data: created, count: created.length })
+})
+
 router.post('/', async (request, response) => {
   if (!isRecord(request.body)) {
     return response.status(400).json({ error: 'Request body must be a JSON object.' })
