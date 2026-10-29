@@ -1,6 +1,6 @@
 # Talentwise React client
 
-The Talentwise client is a React frontend scaffolded with Vite. Its current screens are an interactive, sample-data prototype for the recruiting overview, channel performance comparison, and candidate pipeline. Data is local to the frontend; no API or database is connected yet.
+The Talentwise client is a React frontend scaffolded with Vite. Its current screens are an interactive, sample-data prototype for the recruiting overview, channel performance comparison, and candidate pipeline. Candidate records can be edited or deleted from the Candidates screen; changes are held in React state for the current session and are not sent to the API or saved after reload.
 
 ## Component structure
 
