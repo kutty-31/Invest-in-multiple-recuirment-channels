@@ -1,0 +1,14 @@
+{
+  "name": "talentwise-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Mongoose models for the Talentwise recruitment analytics application",
+  "scripts": {
+    "check": "node --check models/Candidate.js && node --check models/RecruitingChannel.js && node --check models/Candidate.test.js && node --check models/RecruitingChannel.test.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "mongoose": "^8.19.1"
+  }
+}
