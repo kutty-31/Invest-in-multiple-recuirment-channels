@@ -36,6 +36,12 @@ npm run lint
 npm run build
 ```
 
+## Deploy to Netlify
+
+The repository root contains a `netlify.toml` configured for this Vite app. In Netlify, choose **Add new site → Import an existing project**, connect the GitHub repository, and select the `main` branch after this deployment setup is merged. Netlify will use `client/` as the base directory, run `npm run build`, and publish `dist/`. The API URL is set to `https://talentwise-api.onrender.com/api`; override `VITE_API_URL` in Netlify site environment variables if your API URL differs. If Google sign-in is enabled, set `VITE_GOOGLE_CLIENT_ID` in Netlify to the public OAuth Web client ID.
+
+After Netlify assigns the site a URL, set the Render API's `CLIENT_ORIGIN` environment variable to that exact URL (for example, `https://your-site-name.netlify.app`) and redeploy the API. The API also requires a working production `MONGODB_URI`; without it, sign-in and database-backed features will not work. Add the Netlify site origin to the Google OAuth client's authorized JavaScript origins when using Google sign-in.
+
 ## Available scripts
 
 - `npm run dev` — start the Vite development server
