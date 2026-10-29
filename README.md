@@ -43,6 +43,18 @@ The Express API connects to MongoDB through `MONGODB_URI` and uses Mongoose to r
 
 The importable Bruno request collection is in [`bruno/talentwise/`](./bruno/talentwise/). It covers health, authentication, recruiting channels, candidates and résumé files, and analytics. See its README for local environment and token setup.
 
+## Run the application with Docker
+
+Install Docker Desktop, then copy `.env.docker.example` to `.env` in the repository root and set `JWT_SECRET` to a private random value of at least 32 bytes. You can generate one with `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`. From the repository root, start the full stack:
+
+```powershell
+docker compose up --build
+```
+
+Open the frontend at [http://localhost:8080](http://localhost:8080). The API health check is at [http://localhost:5000/api/health](http://localhost:5000/api/health). Compose starts MongoDB, waits for it to become healthy before starting the API, and serves the production React build through Nginx. MongoDB data and uploaded résumés are kept in named local Docker volumes. To stop the stack, press `Ctrl+C` and run `docker compose down`; to also erase the local database and uploaded files, run `docker compose down --volumes`.
+
+The optional `GOOGLE_CLIENT_ID` in `.env` enables Google sign-in in the containerized frontend; configure the same ID in Google Cloud and in production API environments. The local sample secret and MongoDB setup are for development only; never use them for a public deployment.
+
 ## What’s included
 
 - Overview metrics for applicants, hires, hiring time, and cost per hire

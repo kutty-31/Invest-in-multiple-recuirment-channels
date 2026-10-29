@@ -3,4 +3,5 @@ dist/
 .env
 .env.*
 !.env.example
+!.env.docker.example
 server/private_uploads/
