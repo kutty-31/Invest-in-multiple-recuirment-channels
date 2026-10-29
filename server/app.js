@@ -1,6 +1,7 @@
 import cors from 'cors'
 import express from 'express'
 import mongoose from 'mongoose'
+import { createAiRouter } from './routes/ai.js'
 import analyticsRouter from './routes/analytics.js'
 import authRouter from './routes/auth.js'
 import candidatesRouter from './routes/candidates.js'
@@ -26,6 +27,7 @@ app.get('/api/health', (request, response) => {
 })
 
 app.use('/api/auth', authRouter)
+app.use('/api/ai', requireAuth, createAiRouter())
 app.use('/api/candidates', requireAuth, candidatesRouter)
 app.use('/api/channels', requireAuth, channelsRouter)
 app.use('/api/analytics', requireAuth, analyticsRouter)

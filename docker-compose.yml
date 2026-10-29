@@ -21,6 +21,8 @@ services:
       MONGODB_URI: mongodb://mongo:27017/talentwise
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in the root .env file}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
       PORT: 5000
       CLIENT_ORIGIN: http://localhost:8080,http://127.0.0.1:8080
       RESUME_STORAGE_DIR: /app/private_uploads

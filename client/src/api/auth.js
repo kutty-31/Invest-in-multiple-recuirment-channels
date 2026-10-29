@@ -128,7 +128,17 @@ function removeCandidateResume(candidateId, token) {
   })
 }
 
+async function autocompleteRole(prefix, token) {
+  const result = await requestJson('/ai/autocomplete', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ prefix }),
+  })
+  return result.data.suggestion
+}
+
 export {
+  autocompleteRole,
   downloadCandidateResume,
   getRecruitingData,
   login,

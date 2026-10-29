@@ -16,7 +16,8 @@ Both schemas use Mongoose timestamps and strict field checking. Candidate stage/
 2. Set `MONGODB_URI` to a MongoDB connection string for a database you control.
 3. Set `JWT_SECRET` to a random secret of at least 32 bytes. For example, generate one with `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"` and keep it private.
 4. Configure a Google OAuth 2.0 Web application client in Google Cloud Console. Set its client ID as `GOOGLE_CLIENT_ID` in this API environment and as `VITE_GOOGLE_CLIENT_ID` in the client environment. Add the client app origins (for local development, `http://localhost:5173`) to the authorized JavaScript origins. No Google client secret is needed for Google Identity Services ID-token sign-in.
-5. Optionally set `PORT` (defaults to `5000`) and `CLIENT_ORIGIN` (defaults to allowing browser development origins).
+5. To enable AI role-title autocomplete, set `OPENAI_API_KEY` to a private OpenAI API key. `OPENAI_MODEL` is optional and defaults to `gpt-4o-mini`. The API key must only be configured on the server and is never exposed to the client.
+6. Optionally set `PORT` (defaults to `5000`) and `CLIENT_ORIGIN` (defaults to allowing browser development origins).
 6. Install and start the API:
 
 ```powershell
@@ -24,7 +25,7 @@ npm install
 npm run dev
 ```
 
-The API refuses to start without `MONGODB_URI`, a valid `JWT_SECRET`, or if MongoDB is unreachable. The React client can access it at `http://localhost:5000/api`.
+The API refuses to start without `MONGODB_URI`, a valid `JWT_SECRET`, or if MongoDB is unreachable. AI autocomplete is optional; the protected endpoint returns a configuration error until `OPENAI_API_KEY` is set. The React client can access it at `http://localhost:5000/api`.
 
 ## Deploy the backend to Render
 
@@ -58,6 +59,7 @@ Send authenticated API requests with `Authorization: Bearer <accessToken>`. The 
 | POST | `/api/auth/login` | Verify credentials and return an access token |
 | POST | `/api/auth/google` | Verify a Google ID token and return an access token |
 | GET | `/api/auth/me` | Read the authenticated account |
+| POST | `/api/ai/autocomplete` | Complete a partial recruiting role title with the configured AI provider |
 | GET, POST | `/api/channels` | List channels or create a channel |
 | GET, PATCH, PUT, DELETE | `/api/channels/:id` | Read, partially update, replace, or delete/archive a channel |
 | GET | `/api/channels/:id/candidates` | List candidates related to a recruiting channel |

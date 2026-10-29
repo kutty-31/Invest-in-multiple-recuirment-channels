@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   downloadCandidateResume,
+  autocompleteRole,
   getRecruitingData,
   login,
   loginWithGoogle,
@@ -70,6 +71,21 @@ describe('authentication API', () => {
 })
 
 describe('recruiting API', () => {
+  it('requests a role completion from the authenticated AI endpoint', async () => {
+    const fetch = vi.fn().mockResolvedValue(jsonResponse({
+      data: { suggestion: 'Senior Product Designer' },
+    }))
+    vi.stubGlobal('fetch', fetch)
+
+    await expect(autocompleteRole('Senior Product', 'jwt-token'))
+      .resolves.toBe('Senior Product Designer')
+
+    expect(fetch.mock.calls[0][0]).toMatch(/\/ai\/autocomplete$/)
+    expect(fetch.mock.calls[0][1].method).toBe('POST')
+    expect(fetch.mock.calls[0][1].headers.get('Authorization')).toBe('Bearer jwt-token')
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ prefix: 'Senior Product' })
+  })
+
   it('loads candidate and channel lists and maps candidates to client records', async () => {
     const fetch = vi.fn()
       .mockResolvedValueOnce(jsonResponse({ data: [candidateRecord()] }))
