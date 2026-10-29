@@ -139,7 +139,7 @@ test('analytics overview returns all-time metrics and a zero-filled monthly tren
 
   const response = await request(app).get('/api/analytics/overview?months=3')
 
-  assert.equal(response.status, 200)
+  assert.equal(response.status, 200, JSON.stringify(response.body))
   assert.deepEqual(response.body.data.totals, {
     candidates: 2,
     hires: 1,
@@ -268,6 +268,40 @@ test('channel API reports invalid data, duplicates, unknown records, and bad IDs
   assert.equal(missing.status, 404)
 })
 
+test('channel PUT replaces mutable fields, clears omitted optionals, and applies defaults', async () => {
+  const channel = await createChannel({ description: 'Original description', monthlySpend: 850 })
+  const response = await request(app)
+    .put(`/api/channels/${channel._id}`)
+    .send({ name: 'Updated referral', type: 'referral' })
+
+  assert.equal(response.status, 200, JSON.stringify(response.body))
+  assert.equal(response.body.data._id, channel._id)
+  assert.equal(response.body.data.name, 'Updated referral')
+  assert.equal(response.body.data.monthlySpend, 0)
+  assert.equal(response.body.data.isActive, true)
+  assert.equal(response.body.data.description, undefined)
+  assert.equal(await RecruitingChannel.countDocuments(), 1)
+})
+
+test('channel PUT rejects invalid payloads and returns not found for missing IDs', async () => {
+  const channel = await createChannel()
+  const invalid = await request(app)
+    .put(`/api/channels/${channel._id}`)
+    .send({ name: 'x', type: 'unknown' })
+  assert.equal(invalid.status, 400)
+  assert.equal(invalid.body.error, 'Request validation failed.')
+
+  const unknownField = await request(app)
+    .put(`/api/channels/${channel._id}`)
+    .send({ name: 'Valid channel', type: 'referral', unexpected: true })
+  assert.equal(unknownField.status, 400)
+
+  const missing = await request(app)
+    .put(`/api/channels/${new mongoose.Types.ObjectId()}`)
+    .send({ name: 'Replacement', type: 'referral' })
+  assert.equal(missing.status, 404)
+})
+
 test('candidate API validates channel references and persists populated candidate records', async () => {
   const channel = await createChannel()
   const unknownSource = await request(app)
@@ -296,6 +330,65 @@ test('candidate API validates channel references and persists populated candidat
   const fetched = await request(app).get(`/api/candidates/${created.body.data._id}`)
   assert.equal(fetched.status, 200)
   assert.equal(fetched.body.data.source.type, 'referral')
+})
+
+test('candidate PUT replaces mutable fields, clears omitted optionals, and applies defaults', async () => {
+  const channel = await createChannel()
+  const created = await request(app)
+    .post('/api/candidates')
+    .send({
+      fullName: 'Original Candidate',
+      email: 'original@example.com',
+      role: 'Designer',
+      source: channel._id,
+      stage: 'Interview',
+      qualityScore: 5,
+      notes: 'Original notes',
+    })
+  const response = await request(app)
+    .put(`/api/candidates/${created.body.data._id}`)
+    .send({
+      fullName: 'Replacement Candidate',
+      role: 'Data Analyst',
+      source: channel._id,
+    })
+
+  assert.equal(response.status, 200, JSON.stringify(response.body))
+  assert.equal(response.body.data._id, created.body.data._id)
+  assert.equal(response.body.data.fullName, 'Replacement Candidate')
+  assert.equal(response.body.data.email, undefined)
+  assert.equal(response.body.data.stage, 'Applied')
+  assert.equal(response.body.data.qualityScore, 3)
+  assert.equal(response.body.data.notes, undefined)
+  assert.equal(response.body.data.source.name, 'Employee referral')
+  assert.equal(await Candidate.countDocuments(), 1)
+})
+
+test('candidate PUT validates required fields, source references, and missing records', async () => {
+  const channel = await createChannel()
+  const created = await request(app)
+    .post('/api/candidates')
+    .send({ fullName: 'Existing Candidate', role: 'Designer', source: channel._id })
+
+  const missingRequired = await request(app)
+    .put(`/api/candidates/${created.body.data._id}`)
+    .send({ fullName: 'Replacement Candidate', source: channel._id })
+  assert.equal(missingRequired.status, 400)
+  assert.equal(missingRequired.body.fields.role, 'Role is required.')
+
+  const unknownSource = await request(app)
+    .put(`/api/candidates/${created.body.data._id}`)
+    .send({
+      fullName: 'Replacement Candidate',
+      role: 'Engineer',
+      source: new mongoose.Types.ObjectId(),
+    })
+  assert.equal(unknownSource.status, 422)
+
+  const missing = await request(app)
+    .put(`/api/candidates/${new mongoose.Types.ObjectId()}`)
+    .send({ fullName: 'Replacement', role: 'Engineer', source: channel._id })
+  assert.equal(missing.status, 404)
 })
 
 test('candidate updates validate hiring dates, serialize daysToHire, and preserve channel references', async () => {
