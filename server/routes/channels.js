@@ -37,6 +37,42 @@ router.get('/', async (request, response) => {
   return response.json({ data, pagination: { page, limit, total, pages: Math.ceil(total / limit) } })
 })
 
+router.get('/:id/candidates', async (request, response) => {
+  if (!isValidObjectId(request.params.id)) {
+    return response.status(400).json({ error: 'Channel ID is invalid.' })
+  }
+
+  const page = parsePage(request.query.page)
+  const limit = parseLimit(request.query.limit)
+  if (!page || !limit) {
+    return response.status(400).json({ error: 'Page and limit must be positive integers.' })
+  }
+
+  const [channel, total] = await Promise.all([
+    RecruitingChannel.findById(request.params.id).populate({
+      path: 'candidates',
+      select: 'fullName email role source stage qualityScore appliedAt hiredAt',
+      options: { sort: { appliedAt: -1 }, skip: (page - 1) * limit, limit },
+    }),
+    Candidate.countDocuments({ source: request.params.id }),
+  ])
+  if (!channel) return response.status(404).json({ error: 'Recruiting channel not found.' })
+
+  return response.json({
+    data: {
+      channel: {
+        _id: channel._id,
+        name: channel.name,
+        type: channel.type,
+        isActive: channel.isActive,
+        monthlySpend: channel.monthlySpend,
+      },
+      candidates: channel.candidates,
+    },
+    pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+  })
+})
+
 router.post('/', async (request, response) => {
   if (!isRecord(request.body)) {
     return response.status(400).json({ error: 'Request body must be a JSON object.' })
