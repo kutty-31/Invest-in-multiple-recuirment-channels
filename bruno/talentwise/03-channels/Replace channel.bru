@@ -1,0 +1,25 @@
+meta {
+  name: Replace channel
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseUrl}}/channels/{{channelId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Employee referral",
+    "type": "referral",
+    "monthlySpend": 750,
+    "isActive": true,
+    "description": "Revised referral program"
+  }
+}

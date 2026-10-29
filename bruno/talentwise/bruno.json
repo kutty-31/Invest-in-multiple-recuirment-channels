@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Talentwise API",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

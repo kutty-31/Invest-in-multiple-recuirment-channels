@@ -1,0 +1,15 @@
+meta {
+  name: List channels
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/channels?page=1&limit=20&isActive=true
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

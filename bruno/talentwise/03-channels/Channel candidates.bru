@@ -1,0 +1,15 @@
+meta {
+  name: Channel candidates
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/channels/{{channelId}}/candidates?page=1&limit=20
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

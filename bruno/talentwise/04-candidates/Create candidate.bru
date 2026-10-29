@@ -1,0 +1,26 @@
+meta {
+  name: Create candidate
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/candidates
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "fullName": "Taylor Candidate",
+    "email": "taylor@example.com",
+    "role": "Product Designer",
+    "source": "{{channelId}}",
+    "stage": "Applied",
+    "qualityScore": 4.2
+  }
+}

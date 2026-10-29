@@ -1,0 +1,22 @@
+meta {
+  name: Patch channel
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/channels/{{channelId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "monthlySpend": 750,
+    "description": "Updated monthly recruiting spend"
+  }
+}

@@ -1,0 +1,25 @@
+meta {
+  name: Create channel
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/channels
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Employee referral",
+    "type": "referral",
+    "monthlySpend": 500,
+    "isActive": true,
+    "description": "Referrals from current employees"
+  }
+}

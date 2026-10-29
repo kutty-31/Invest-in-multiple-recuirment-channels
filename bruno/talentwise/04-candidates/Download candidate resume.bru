@@ -1,0 +1,15 @@
+meta {
+  name: Download candidate resume
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/candidates/{{candidateId}}/resume
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

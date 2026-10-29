@@ -1,0 +1,20 @@
+meta {
+  name: Delete or archive channel
+  type: http
+  seq: 6
+}
+
+docs {
+  Returns 204 when a channel without candidates is deleted.
+  Returns 409 after archiving a channel that still has candidate records.
+}
+
+delete {
+  url: {{baseUrl}}/channels/{{channelId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

@@ -1,0 +1,15 @@
+meta {
+  name: Read channel
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/channels/{{channelId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

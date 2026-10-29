@@ -1,0 +1,33 @@
+meta {
+  name: Bulk create candidates
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/candidates/bulk
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "candidates": [
+      {
+        "fullName": "Avery Brooks",
+        "role": "Product Designer",
+        "source": "{{channelId}}"
+      },
+      {
+        "fullName": "Jordan Lee",
+        "role": "Software Engineer",
+        "source": "{{channelId}}",
+        "stage": "Screening"
+      }
+    ]
+  }
+}
