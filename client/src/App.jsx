@@ -5,13 +5,26 @@ import OverviewDashboard from './components/OverviewDashboard'
 import PageHeading from './components/PageHeading'
 import Sidebar from './components/Sidebar'
 import Topbar from './components/Topbar'
-import { navigation } from './data/recruiting'
+import { candidateRows, navigation } from './data/recruiting'
 import './App.css'
 
 function App() {
   const [activeScreen, setActiveScreen] = useState('overview')
   const [candidateSearch, setCandidateSearch] = useState('')
+  const [candidates, setCandidates] = useState(candidateRows)
   const activeLabel = navigation.find((item) => item.id === activeScreen)?.label ?? 'Overview'
+
+  function updateCandidate(updatedCandidate) {
+    setCandidates((currentCandidates) => currentCandidates.map((candidate) => (
+      candidate.id === updatedCandidate.id ? updatedCandidate : candidate
+    )))
+  }
+
+  function deleteCandidate(candidateId) {
+    setCandidates((currentCandidates) => currentCandidates.filter(
+      (candidate) => candidate.id !== candidateId,
+    ))
+  }
 
   return (
     <div className="app-shell">
@@ -23,7 +36,13 @@ function App() {
           {activeScreen === 'overview' && <OverviewDashboard />}
           {activeScreen === 'channels' && <ChannelsPage />}
           {activeScreen === 'candidates' && (
-            <CandidatePipeline search={candidateSearch} onSearchChange={setCandidateSearch} />
+            <CandidatePipeline
+              candidates={candidates}
+              onCandidateUpdate={updateCandidate}
+              onCandidateDelete={deleteCandidate}
+              search={candidateSearch}
+              onSearchChange={setCandidateSearch}
+            />
           )}
 
           <footer className="page-footer">

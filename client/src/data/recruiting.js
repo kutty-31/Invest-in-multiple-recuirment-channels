@@ -12,10 +12,10 @@ export const channelRows = [
 ]
 
 export const candidateRows = [
-  { name: 'Olivia Chen', role: 'Product Designer', source: 'LinkedIn', stage: 'Interview', quality: '5.0', applied: '2 days ago' },
-  { name: 'Noah Williams', role: 'Backend Engineer', source: 'Employee referral', stage: 'Hired', quality: '5.0', applied: '5 days ago' },
-  { name: 'Amara Okafor', role: 'Product Manager', source: 'Careers page', stage: 'Screening', quality: '4.0', applied: '8 days ago' },
-  { name: 'Ethan Patel', role: 'Data Analyst', source: 'Indeed', stage: 'Applied', quality: '3.0', applied: '10 days ago' },
+  { id: 'candidate-olivia-chen', name: 'Olivia Chen', role: 'Product Designer', source: 'LinkedIn', stage: 'Interview', quality: '5.0', applied: '2 days ago' },
+  { id: 'candidate-noah-williams', name: 'Noah Williams', role: 'Backend Engineer', source: 'Employee referral', stage: 'Hired', quality: '5.0', applied: '5 days ago' },
+  { id: 'candidate-amara-okafor', name: 'Amara Okafor', role: 'Product Manager', source: 'Careers page', stage: 'Screening', quality: '4.0', applied: '8 days ago' },
+  { id: 'candidate-ethan-patel', name: 'Ethan Patel', role: 'Data Analyst', source: 'Indeed', stage: 'Applied', quality: '3.0', applied: '10 days ago' },
 ]
 
 export const metrics = [

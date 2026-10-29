@@ -1,6 +1,12 @@
 import CandidateTable from './CandidateTable'
 
-function CandidatePipeline({ search, onSearchChange }) {
+function CandidatePipeline({
+  candidates,
+  onCandidateUpdate,
+  onCandidateDelete,
+  search,
+  onSearchChange,
+}) {
   return (
     <section className="panel full-panel">
       <div className="panel-heading">
@@ -20,8 +26,13 @@ function CandidatePipeline({ search, onSearchChange }) {
           />
         </label>
       </div>
-      <CandidateTable search={search} />
-      <p className="panel-footnote">Showing sample candidate records · No ATS connection</p>
+      <CandidateTable
+        candidates={candidates}
+        onCandidateUpdate={onCandidateUpdate}
+        onCandidateDelete={onCandidateDelete}
+        search={search}
+      />
+      <p className="panel-footnote">Showing sample candidate records · Changes are stored in this session only</p>
     </section>
   )
 }
