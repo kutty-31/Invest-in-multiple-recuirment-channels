@@ -33,7 +33,7 @@ No build step, package installation, or framework is required. Open `index.html`
 
 ## React client
 
-The Vite-powered React frontend is in [`client/`](./client/). From that folder, install dependencies with `npm install` and run the development server with `npm run dev`. The sign-in screen and candidate management connect to the Express API; the overview and channel comparison screens continue to use sample data.
+The Vite-powered React frontend is in [`client/`](./client/). From that folder, install dependencies with `npm install` and run the development server with `npm run dev`. The sign-in screen supports username/password and Google authentication through the Express API; the overview and channel comparison screens continue to use sample data.
 
 ## Mongoose models
 

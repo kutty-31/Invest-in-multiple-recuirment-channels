@@ -1,6 +1,6 @@
 # Talentwise React client
 
-The Talentwise client is a React frontend scaffolded with Vite. The sign-in screen connects to the API's username/password authentication; candidate records are loaded from the authenticated API and edits/deletions are persisted to MongoDB. Overview metrics and channel comparisons remain illustrative sample data.
+The Talentwise client is a React frontend scaffolded with Vite. The sign-in screen supports username/password and Google sign-in; candidate records are loaded from the authenticated API and edits/deletions are persisted to MongoDB. Overview metrics and channel comparisons remain illustrative sample data.
 
 ## Component structure
 
@@ -27,7 +27,7 @@ npm run dev
 
 Vite prints a local development URL after the server starts.
 
-Start the API from `server/` with a configured MongoDB connection and `JWT_SECRET` before signing in. The client uses `http://localhost:5000/api` by default; set `VITE_API_URL` in a client `.env` file to override it.
+Copy `.env.example` to `.env` in this directory and set `VITE_GOOGLE_CLIENT_ID` to your Google Cloud OAuth 2.0 Web client ID to enable the Google button. Configure the same ID as `GOOGLE_CLIENT_ID` in the API's `server/.env`. Add the Vite origin (usually `http://localhost:5173`) to authorized JavaScript origins in Google Cloud Console. Start the API from `server/` with a configured MongoDB connection and `JWT_SECRET` before signing in. Set `VITE_API_URL` if the API is not at `http://localhost:5000/api`.
 
 ## Validate
 

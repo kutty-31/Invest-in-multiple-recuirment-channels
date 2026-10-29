@@ -14,8 +14,23 @@ const userSchema = new mongoose.Schema(
     },
     passwordHash: {
       type: String,
-      required: true,
       select: false,
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      maxlength: [254, 'Email cannot exceed 254 characters.'],
+    },
+    displayName: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Display name cannot exceed 100 characters.'],
     },
   },
   {
@@ -29,6 +44,13 @@ const userSchema = new mongoose.Schema(
     },
   },
 )
+
+userSchema.pre('validate', function validateAuthenticationMethod(next) {
+  if (this.googleId) return next()
+  if (this.username && this.passwordHash) return next()
+  this.invalidate('passwordHash', 'A password is required for username authentication.')
+  return next()
+})
 
 const User = mongoose.models.User || mongoose.model('User', userSchema)
 

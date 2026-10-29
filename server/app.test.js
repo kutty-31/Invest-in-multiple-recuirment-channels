@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { after, before, beforeEach, test } from 'node:test'
 import bcrypt from 'bcryptjs'
+import express from 'express'
 import jwt from 'jsonwebtoken'
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
@@ -8,11 +9,13 @@ import supertest from 'supertest'
 import app from './app.js'
 import Candidate from './models/Candidate.js'
 import RecruitingChannel from './models/RecruitingChannel.js'
+import { createAuthRouter } from './routes/auth.js'
 import User from './models/User.js'
 
 let mongo
 const testSecret = 'test-secret-with-at-least-thirty-two-bytes'
 process.env.JWT_SECRET = testSecret
+process.env.GOOGLE_CLIENT_ID = 'talentwise-test-client.apps.googleusercontent.com'
 const testToken = jwt.sign(
   { username: 'test-user' },
   testSecret,
@@ -141,6 +144,119 @@ test('login returns a token for valid credentials and a generic error otherwise'
     .send({ username: 'not-registered', password: 'incorrect-pass' })
   assert.equal(unknownUser.status, 401)
   assert.equal(unknownUser.body.error, incorrectPassword.body.error)
+})
+
+test('Google sign-in verifies the configured audience and creates or updates an identity', async () => {
+  const profile = {
+    sub: 'google-subject-987',
+    email: 'Recruiter@example.com',
+    email_verified: true,
+    name: 'Google Recruiter',
+  }
+  const verifier = {
+    async verifyIdToken({ idToken, audience }) {
+      assert.equal(idToken, 'valid-google-id-token')
+      assert.equal(audience, process.env.GOOGLE_CLIENT_ID)
+      return { getPayload: () => profile }
+    },
+  }
+  const googleApp = express()
+    .use(express.json())
+    .use('/api/auth', createAuthRouter({ verifier }))
+
+  const firstLogin = await supertest(googleApp)
+    .post('/api/auth/google')
+    .send({ credential: 'valid-google-id-token' })
+  assert.equal(firstLogin.status, 200)
+  assert.deepEqual(firstLogin.body.data.user, {
+    id: firstLogin.body.data.user.id,
+    username: 'Google Recruiter',
+    email: 'recruiter@example.com',
+  })
+  assert.equal(firstLogin.body.data.tokenType, 'Bearer')
+  assert.equal(firstLogin.body.data.expiresIn, 3600)
+  const claims = jwt.verify(firstLogin.body.data.accessToken, testSecret, {
+    algorithms: ['HS256'],
+    issuer: 'talentwise-api',
+    audience: 'talentwise-client',
+  })
+  assert.equal(claims.username, 'Google Recruiter')
+
+  const user = await User.findOne({ googleId: profile.sub }).select('+passwordHash')
+  assert.ok(user)
+  assert.equal(user.email, 'recruiter@example.com')
+  assert.equal(user.passwordHash, undefined)
+
+  profile.name = 'Updated Recruiter'
+  const secondLogin = await supertest(googleApp)
+    .post('/api/auth/google')
+    .send({ credential: 'valid-google-id-token' })
+  assert.equal(secondLogin.status, 200)
+  assert.equal(secondLogin.body.data.user.id, user._id.toString())
+  assert.equal(secondLogin.body.data.user.username, 'Updated Recruiter')
+  assert.equal(await User.countDocuments({ googleId: profile.sub }), 1)
+})
+
+test('Google sign-in rejects malformed requests, unverified emails, and invalid ID tokens', async () => {
+  let tokenPayload = {
+    sub: 'unverified-google-subject',
+    email: 'unverified@example.com',
+    email_verified: false,
+  }
+  const verifier = {
+    async verifyIdToken() {
+      return { getPayload: () => tokenPayload }
+    },
+  }
+  const googleApp = express()
+    .use(express.json())
+    .use('/api/auth', createAuthRouter({ verifier }))
+
+  const malformedRequest = await supertest(googleApp)
+    .post('/api/auth/google')
+    .send({ credential: 'test-token', username: 'unexpected' })
+  assert.equal(malformedRequest.status, 400)
+
+  const unverifiedEmail = await supertest(googleApp)
+    .post('/api/auth/google')
+    .send({ credential: 'test-token' })
+  assert.equal(unverifiedEmail.status, 401)
+  assert.equal(await User.countDocuments({ googleId: tokenPayload.sub }), 0)
+
+  tokenPayload = {
+    sub: 'verified-google-subject',
+    email: 'verified@example.com',
+    email_verified: true,
+  }
+  verifier.verifyIdToken = async () => {
+    throw new Error('Invalid token signature.')
+  }
+  const invalidToken = await supertest(googleApp)
+    .post('/api/auth/google')
+    .send({ credential: 'invalid-token' })
+  assert.equal(invalidToken.status, 401)
+  assert.equal(await User.countDocuments({ googleId: 'verified-google-subject' }), 0)
+})
+
+test('Google sign-in reports missing OAuth configuration and temporary verification outages', async () => {
+  const googleApp = express()
+    .use(express.json())
+    .use('/api/auth', createAuthRouter({
+      verifier: { async verifyIdToken() { throw Object.assign(new Error('Google unavailable'), { code: 'ECONNRESET' }) } },
+    }))
+  const clientId = process.env.GOOGLE_CLIENT_ID
+
+  delete process.env.GOOGLE_CLIENT_ID
+  const unconfigured = await supertest(googleApp)
+    .post('/api/auth/google')
+    .send({ credential: 'some-token' })
+  assert.equal(unconfigured.status, 503)
+  process.env.GOOGLE_CLIENT_ID = clientId
+
+  const unavailable = await supertest(googleApp)
+    .post('/api/auth/google')
+    .send({ credential: 'some-token' })
+  assert.equal(unavailable.status, 502)
 })
 
 test('recruiting APIs reject missing and invalid tokens', async () => {

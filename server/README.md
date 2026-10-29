@@ -14,8 +14,9 @@ Both schemas use Mongoose timestamps and strict field checking. Candidate stage/
 1. Copy `.env.example` to `.env` in this directory.
 2. Set `MONGODB_URI` to a MongoDB connection string for a database you control.
 3. Set `JWT_SECRET` to a random secret of at least 32 bytes. For example, generate one with `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"` and keep it private.
-4. Optionally set `PORT` (defaults to `5000`) and `CLIENT_ORIGIN` (defaults to allowing browser development origins).
-4. Install and start the API:
+4. Configure a Google OAuth 2.0 Web application client in Google Cloud Console. Set its client ID as `GOOGLE_CLIENT_ID` in this API environment and as `VITE_GOOGLE_CLIENT_ID` in the client environment. Add the client app origins (for local development, `http://localhost:5173`) to the authorized JavaScript origins. No Google client secret is needed for Google Identity Services ID-token sign-in.
+5. Optionally set `PORT` (defaults to `5000`) and `CLIENT_ORIGIN` (defaults to allowing browser development origins).
+6. Install and start the API:
 
 ```powershell
 npm install
@@ -26,7 +27,9 @@ The API refuses to start without `MONGODB_URI`, a valid `JWT_SECRET`, or if Mong
 
 ## Authentication
 
-Create an account from the React sign-in screen or call `POST /api/auth/register` with `{ "username": "recruiter", "password": "a-strong-password" }`. Usernames are case-insensitive; passwords must contain at least 8 characters and no more than 72 UTF-8 bytes. Passwords are stored as bcrypt hashes. Sign in with `POST /api/auth/login` to receive a one-hour JWT access token. The client keeps the token in memory and signing out or reloading requires signing in again.
+Create an account from the React sign-in screen or call `POST /api/auth/register` with `{ "username": "recruiter", "password": "a-strong-password" }`. Usernames are case-insensitive; passwords must contain at least 8 characters and no more than 72 UTF-8 bytes. Passwords are stored as bcrypt hashes. Sign in with `POST /api/auth/login` to receive a one-hour JWT access token.
+
+The client also offers Google sign-in using Google Identity Services. It sends the returned ID token to `POST /api/auth/google`; the API verifies its signature, issuer, expiration, and audience using the configured Google client ID, and requires a verified email before issuing the app's one-hour JWT. Google identities are stored by Google's stable subject ID and are not automatically linked to a password account by email. The client keeps app tokens in memory; signing out or reloading requires signing in again.
 
 Send authenticated API requests with `Authorization: Bearer <accessToken>`. The health check and `/api/auth/register` and `/api/auth/login` are public. `/api/auth/me`, candidate, channel, and analytics endpoints require a valid access token. The JWT secret must remain private and should be different for each environment.
 
@@ -37,6 +40,7 @@ Send authenticated API requests with `Authorization: Bearer <accessToken>`. The 
 | GET | `/api/health` | Report API and MongoDB connection status |
 | POST | `/api/auth/register` | Create an account and return an access token |
 | POST | `/api/auth/login` | Verify credentials and return an access token |
+| POST | `/api/auth/google` | Verify a Google ID token and return an access token |
 | GET | `/api/auth/me` | Read the authenticated account |
 | GET, POST | `/api/channels` | List channels or create a channel |
 | GET, PATCH, PUT, DELETE | `/api/channels/:id` | Read, partially update, replace, or delete/archive a channel |
