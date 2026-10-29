@@ -33,6 +33,7 @@ Copy `.env.example` to `.env` in this directory and set `VITE_GOOGLE_CLIENT_ID` 
 
 ```powershell
 npm run lint
+npm test
 npm run build
 ```
 
@@ -48,3 +49,4 @@ After Netlify assigns the site a URL, set the Render API's `CLIENT_ORIGIN` envir
 - `npm run build` — create a production build in `dist/`
 - `npm run preview` — preview the production build locally
 - `npm run lint` — run Oxlint
+- `npm test` — run client unit tests with Vitest
