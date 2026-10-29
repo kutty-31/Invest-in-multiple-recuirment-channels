@@ -1,5 +1,9 @@
+import { unlink } from 'node:fs/promises'
+import path from 'node:path'
 import { Router } from 'express'
+import { fileTypeFromBuffer } from 'file-type'
 import Candidate, { candidateStages } from '../models/Candidate.js'
+import { uploadResume } from '../middleware/resumeUpload.js'
 import RecruitingChannel from '../models/RecruitingChannel.js'
 import {
   escapeRegex,
@@ -8,6 +12,7 @@ import {
   parseLimit,
   parsePage,
 } from '../utils/requestValidation.js'
+import { readResume, removeResume, storeResume } from '../utils/resumeStorage.js'
 
 const candidateFields = new Set([
   'fullName',
@@ -39,6 +44,107 @@ async function channelExists(sourceId) {
   if (!isValidObjectId(sourceId)) return false
   return Boolean(await RecruitingChannel.exists({ _id: sourceId }))
 }
+
+function resumeName(originalName) {
+  const normalized = path.posix.basename(originalName.replace(/\\/g, '/'))
+    .replace(/[\u0000-\u001f\u007f]/g, '')
+    .trim()
+  return normalized.slice(0, 255) || 'resume.pdf'
+}
+
+router.post('/:id/resume', async (request, response, next) => {
+  if (!isValidObjectId(request.params.id)) {
+    return response.status(400).json({ error: 'Candidate ID is invalid.' })
+  }
+
+  const candidate = await Candidate.findById(request.params.id)
+  if (!candidate) return response.status(404).json({ error: 'Candidate not found.' })
+
+  uploadResume(request, response, async (uploadError) => {
+    if (uploadError) return next(uploadError)
+    if (!request.file) {
+      return response.status(400).json({ error: 'Choose a PDF resume to upload.' })
+    }
+
+    try {
+      const detectedType = await fileTypeFromBuffer(request.file.buffer)
+      if (detectedType?.mime !== 'application/pdf') {
+        return response.status(415).json({ error: 'The uploaded file is not a valid PDF.' })
+      }
+
+      const storedFile = await storeResume(request.file.buffer)
+      const previousResume = candidate.resume
+      candidate.resume = {
+        storageKey: storedFile.storageKey,
+        originalName: resumeName(request.file.originalname),
+        size: request.file.size,
+        contentType: 'application/pdf',
+        uploadedAt: new Date(),
+      }
+
+      try {
+        await candidate.save()
+      } catch (error) {
+        await unlink(storedFile.filepath).catch((cleanupError) => {
+          console.error('Unable to remove unreferenced resume after save failure:', cleanupError)
+        })
+        throw error
+      }
+
+      if (previousResume?.storageKey) {
+        await removeResume(previousResume.storageKey).catch((cleanupError) => {
+          console.error('Unable to remove replaced resume file:', cleanupError)
+        })
+      }
+      return response.status(201).json({ data: candidate.resume })
+    } catch (error) {
+      return next(error)
+    }
+  })
+})
+
+router.get('/:id/resume', async (request, response, next) => {
+  if (!isValidObjectId(request.params.id)) {
+    return response.status(400).json({ error: 'Candidate ID is invalid.' })
+  }
+
+  try {
+    const candidate = await Candidate.findById(request.params.id)
+    if (!candidate) return response.status(404).json({ error: 'Candidate not found.' })
+    if (!candidate.resume) return response.status(404).json({ error: 'Candidate has no resume.' })
+
+    const contents = await readResume(candidate.resume.storageKey)
+    response.set({
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': `attachment; filename="resume.pdf"; filename*=UTF-8''${encodeURIComponent(candidate.resume.originalName)}`,
+      'Content-Length': contents.length,
+      'X-Content-Type-Options': 'nosniff',
+    })
+    return response.send(contents)
+  } catch (error) {
+    return next(error)
+  }
+})
+
+router.delete('/:id/resume', async (request, response, next) => {
+  if (!isValidObjectId(request.params.id)) {
+    return response.status(400).json({ error: 'Candidate ID is invalid.' })
+  }
+
+  try {
+    const candidate = await Candidate.findById(request.params.id)
+    if (!candidate) return response.status(404).json({ error: 'Candidate not found.' })
+    if (!candidate.resume) return response.status(404).json({ error: 'Candidate has no resume.' })
+
+    const { storageKey } = candidate.resume
+    candidate.resume = undefined
+    await candidate.save()
+    await removeResume(storageKey)
+    return response.status(204).end()
+  } catch (error) {
+    return next(error)
+  }
+})
 
 router.get('/', async (request, response) => {
   const page = parsePage(request.query.page)
@@ -261,6 +367,11 @@ router.delete('/:id', async (request, response) => {
 
   const candidate = await Candidate.findByIdAndDelete(request.params.id)
   if (!candidate) return response.status(404).json({ error: 'Candidate not found.' })
+  if (candidate.resume?.storageKey) {
+    await removeResume(candidate.resume.storageKey).catch((error) => {
+      console.error('Unable to remove resume for deleted candidate:', error)
+    })
+  }
   return response.status(204).end()
 })
 

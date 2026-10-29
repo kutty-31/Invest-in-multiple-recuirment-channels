@@ -40,6 +40,15 @@ app.use((error, request, response, next) => {
   if (error?.type === 'entity.parse.failed') {
     return response.status(400).json({ error: 'Request body must contain valid JSON.' })
   }
+  if (error?.code === 'LIMIT_FILE_SIZE') {
+    return response.status(413).json({ error: 'Resume files must be 5 MB or smaller.' })
+  }
+  if (error?.code === 'UNSUPPORTED_RESUME_TYPE') {
+    return response.status(415).json({ error: error.message })
+  }
+  if (error?.name === 'MulterError') {
+    return response.status(400).json({ error: 'Upload one PDF resume using the resume field.' })
+  }
   if (error?.name === 'ValidationError') {
     const fields = Object.fromEntries(
       Object.entries(error.errors).map(([field, detail]) => [field, detail.message]),

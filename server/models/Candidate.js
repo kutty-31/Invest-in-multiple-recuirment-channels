@@ -1,6 +1,51 @@
 import mongoose from 'mongoose'
 
 const candidateStages = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired']
+const resumeSchema = new mongoose.Schema(
+  {
+    storageKey: {
+      type: String,
+      required: true,
+      match: /^[0-9a-f-]{36}$/,
+    },
+    originalName: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 255,
+    },
+    size: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5 * 1024 * 1024,
+    },
+    contentType: {
+      type: String,
+      enum: ['application/pdf'],
+      required: true,
+    },
+    uploadedAt: {
+      type: Date,
+      required: true,
+    },
+  },
+  {
+    _id: false,
+    toJSON: {
+      transform(document, result) {
+        delete result.storageKey
+        return result
+      },
+    },
+    toObject: {
+      transform(document, result) {
+        delete result.storageKey
+        return result
+      },
+    },
+  },
+)
 
 const candidateSchema = new mongoose.Schema(
   {
@@ -72,6 +117,7 @@ const candidateSchema = new mongoose.Schema(
       trim: true,
       maxlength: [2000, 'Notes cannot exceed 2000 characters.'],
     },
+    resume: { type: resumeSchema, default: undefined },
   },
   {
     timestamps: true,

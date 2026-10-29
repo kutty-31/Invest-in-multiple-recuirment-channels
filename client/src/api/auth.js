@@ -2,7 +2,9 @@ const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 async function requestJson(path, { token, ...options } = {}) {
   const headers = new Headers(options.headers)
-  if (options.body) headers.set('Content-Type', 'application/json')
+  if (options.body && !(options.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json')
+  }
   if (token) headers.set('Authorization', `Bearer ${token}`)
 
   const response = await fetch(`${apiBaseUrl}${path}`, { ...options, headers })
@@ -54,6 +56,10 @@ function toCandidateView(candidate) {
     applied,
     appliedAt: candidate.appliedAt,
     hiredAt: candidate.hiredAt || '',
+    resume: candidate.resume ? {
+      originalName: candidate.resume.originalName,
+      size: candidate.resume.size,
+    } : null,
   }
 }
 
@@ -93,11 +99,43 @@ function removeCandidate(candidateId, token) {
   })
 }
 
+function uploadCandidateResume(candidateId, file, token) {
+  const formData = new FormData()
+  formData.append('resume', file)
+  return requestJson(`/candidates/${encodeURIComponent(candidateId)}/resume`, {
+    method: 'POST',
+    token,
+    body: formData,
+  }).then((result) => result.data)
+}
+
+async function downloadCandidateResume(candidateId, token) {
+  const response = await fetch(`${apiBaseUrl}/candidates/${encodeURIComponent(candidateId)}/resume`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!response.ok) {
+    const result = await response.json()
+    throw new Error(result.error || `Request failed with status ${response.status}.`)
+  }
+  return response.blob()
+}
+
+function removeCandidateResume(candidateId, token) {
+  return requestJson(`/candidates/${encodeURIComponent(candidateId)}/resume`, {
+    method: 'DELETE',
+    token,
+  })
+}
+
 export {
+  downloadCandidateResume,
   getRecruitingData,
   login,
   loginWithGoogle,
+  removeCandidateResume,
   register,
   removeCandidate,
   replaceCandidate,
+  uploadCandidateResume,
 }

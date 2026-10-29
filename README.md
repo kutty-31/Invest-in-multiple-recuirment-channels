@@ -47,6 +47,7 @@ The Express API connects to MongoDB through `MONGODB_URI` and uses Mongoose to r
 - A package comparison section with starter, growth, scale-up, and executive recruiting plans
 - Candidate search and a form for adding candidates to the pipeline
 - Username/password registration and sign-in with protected recruiting API access
+- Authenticated candidate PDF resume uploads, downloads, and removal
 - Hire dates and time-to-hire tracking for successful hires
 - CSV export of candidate records in the selected reporting period
 - Authenticated candidate updates and deletions persisted to MongoDB

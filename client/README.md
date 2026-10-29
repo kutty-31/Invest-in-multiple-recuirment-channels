@@ -1,6 +1,6 @@
 # Talentwise React client
 
-The Talentwise client is a React frontend scaffolded with Vite. The sign-in screen supports username/password and Google sign-in; candidate records are loaded from the authenticated API and edits/deletions are persisted to MongoDB. Overview metrics and channel comparisons remain illustrative sample data.
+The Talentwise client is a React frontend scaffolded with Vite. The sign-in screen supports username/password and Google sign-in; candidate records are loaded from the authenticated API, edits/deletions are persisted to MongoDB, and PDF resumes can be uploaded, downloaded, and removed. Overview metrics and channel comparisons remain illustrative sample data.
 
 ## Component structure
 

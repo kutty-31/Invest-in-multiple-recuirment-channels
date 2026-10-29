@@ -3,12 +3,22 @@ import { qualityStars } from '../data/recruiting'
 
 const stages = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired']
 
-function CandidateTable({ candidates, channels, onCandidateUpdate, onCandidateDelete, search }) {
+function CandidateTable({
+  candidates,
+  channels,
+  onCandidateUpdate,
+  onCandidateDelete,
+  onResumeUpload,
+  onResumeDownload,
+  onResumeDelete,
+  search,
+}) {
   const [editingCandidate, setEditingCandidate] = useState(null)
   const [editingStage, setEditingStage] = useState('')
   const [deletingCandidate, setDeletingCandidate] = useState(null)
   const [message, setMessage] = useState('')
   const [saving, setSaving] = useState(false)
+  const [resumeBusyId, setResumeBusyId] = useState('')
   const query = search.trim().toLowerCase()
   const filteredCandidates = candidates.filter((candidate) =>
     [candidate.name, candidate.role, candidate.source, candidate.stage]
@@ -57,6 +67,42 @@ function CandidateTable({ candidates, channels, onCandidateUpdate, onCandidateDe
     }
   }
 
+  async function handleResumeUpload(candidate, file) {
+    setMessage('')
+    setResumeBusyId(candidate.id)
+    try {
+      await onResumeUpload(candidate.id, file)
+      setMessage(`Resume uploaded for ${candidate.name}.`)
+    } catch (error) {
+      setMessage(`Could not upload resume: ${error.message}`)
+    } finally {
+      setResumeBusyId('')
+    }
+  }
+
+  async function handleResumeDownload(candidate) {
+    setResumeBusyId(candidate.id)
+    try {
+      await onResumeDownload(candidate)
+    } catch (error) {
+      setMessage(`Could not download resume: ${error.message}`)
+    } finally {
+      setResumeBusyId('')
+    }
+  }
+
+  async function handleResumeDelete(candidate) {
+    setResumeBusyId(candidate.id)
+    try {
+      await onResumeDelete(candidate.id)
+      setMessage(`Resume removed for ${candidate.name}.`)
+    } catch (error) {
+      setMessage(`Could not remove resume: ${error.message}`)
+    } finally {
+      setResumeBusyId('')
+    }
+  }
+
   return (
     <>
       {message && (
@@ -78,6 +124,7 @@ function CandidateTable({ candidates, channels, onCandidateUpdate, onCandidateDe
               <th scope="col">Stage</th>
               <th scope="col">Quality</th>
               <th scope="col">Applied</th>
+              <th scope="col">Resume</th>
               <th scope="col"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
@@ -98,6 +145,51 @@ function CandidateTable({ candidates, channels, onCandidateUpdate, onCandidateDe
                   </span>{' '}{candidate.quality}
                 </td>
                 <td>{candidate.applied}</td>
+                <td>
+                  <div className="resume-actions">
+                    {candidate.resume && (
+                      <>
+                        <span className="resume-name" title={candidate.resume.originalName}>
+                          {candidate.resume.originalName}
+                        </span>
+                        <button
+                          className="candidate-action"
+                          type="button"
+                          disabled={resumeBusyId === candidate.id}
+                          onClick={() => handleResumeDownload(candidate)}
+                          aria-label={`Download resume for ${candidate.name}`}
+                        >
+                          Download
+                        </button>
+                        <button
+                          className="candidate-action candidate-action--danger"
+                          type="button"
+                          disabled={resumeBusyId === candidate.id}
+                          onClick={() => handleResumeDelete(candidate)}
+                          aria-label={`Remove resume for ${candidate.name}`}
+                        >
+                          Remove
+                        </button>
+                      </>
+                    )}
+                    <label className="resume-upload-label">
+                      {resumeBusyId === candidate.id
+                        ? 'Uploading…'
+                        : candidate.resume ? 'Replace' : 'Upload PDF'}
+                      <input
+                        type="file"
+                        accept="application/pdf,.pdf"
+                        aria-label={`${candidate.resume ? 'Replace' : 'Upload'} PDF resume for ${candidate.name}`}
+                        disabled={resumeBusyId === candidate.id}
+                        onChange={(event) => {
+                          const [file] = event.target.files
+                          if (file) void handleResumeUpload(candidate, file)
+                          event.target.value = ''
+                        }}
+                      />
+                    </label>
+                  </div>
+                </td>
                 <td>
                   <div className="candidate-actions">
                     <button
@@ -125,7 +217,7 @@ function CandidateTable({ candidates, channels, onCandidateUpdate, onCandidateDe
               </tr>
             ))}
             {filteredCandidates.length === 0 && (
-              <tr><td className="empty-state" colSpan="7">No candidates match “{search}”.</td></tr>
+              <tr><td className="empty-state" colSpan="8">No candidates match “{search}”.</td></tr>
             )}
           </tbody>
         </table>

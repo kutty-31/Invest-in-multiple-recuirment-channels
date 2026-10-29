@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react'
-import { getRecruitingData, removeCandidate as removeCandidateRequest, replaceCandidate } from './api/auth'
+import {
+  downloadCandidateResume,
+  getRecruitingData,
+  removeCandidate as removeCandidateRequest,
+  removeCandidateResume,
+  replaceCandidate,
+  uploadCandidateResume,
+} from './api/auth'
 import AuthScreen from './components/AuthScreen'
 import CandidatePipeline from './components/CandidatePipeline'
 import ChannelsPage from './components/ChannelsPage'
@@ -68,6 +75,32 @@ function App() {
     ))
   }
 
+  async function uploadResume(candidateId, file) {
+    const resume = await uploadCandidateResume(candidateId, file, session.accessToken)
+    setCandidates((currentCandidates) => currentCandidates.map((candidate) => (
+      candidate.id === candidateId
+        ? { ...candidate, resume: { originalName: resume.originalName, size: resume.size } }
+        : candidate
+    )))
+  }
+
+  async function downloadResume(candidate) {
+    const blob = await downloadCandidateResume(candidate.id, session.accessToken)
+    const objectUrl = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = objectUrl
+    anchor.download = candidate.resume.originalName
+    anchor.click()
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
+  }
+
+  async function deleteResume(candidateId) {
+    await removeCandidateResume(candidateId, session.accessToken)
+    setCandidates((currentCandidates) => currentCandidates.map((candidate) => (
+      candidate.id === candidateId ? { ...candidate, resume: null } : candidate
+    )))
+  }
+
   function signOut() {
     setSession(null)
     setCandidates([])
@@ -100,6 +133,9 @@ function App() {
               onRetry={retryCandidateLoad}
               onCandidateUpdate={updateCandidate}
               onCandidateDelete={deleteCandidate}
+              onResumeUpload={uploadResume}
+              onResumeDownload={downloadResume}
+              onResumeDelete={deleteResume}
               search={candidateSearch}
               onSearchChange={setCandidateSearch}
             />
