@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f6f7f9" />
+    <meta
+      name="description"
+      content="See which recruiting channels bring in your best hires with Talentwise."
+    />
+    <title>Talentwise — Recruitment analytics</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <a class="brand" href="#overview" aria-label="Talentwise home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path d="M7 22.5 14.2 7l4.3 9.2 2.2-4.5L27 25H8.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="23.5" cy="8" r="2" fill="currentColor" />
+            </svg>
+          </span>
+          <span>talentwise</span>
+        </a>
+
+        <div class="workspace-label">WORKSPACE</div>
+        <button class="workspace-switcher" type="button" aria-label="Current workspace: Northstar Studio">
+          <span class="workspace-avatar">N</span>
+          <span class="workspace-copy"><strong>Northstar Studio</strong><small>Growth team</small></span>
+          <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
+        </button>
+
+        <nav class="primary-nav" aria-label="Main navigation">
+          <a class="nav-link active" href="#overview" data-nav="overview">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="5.5" height="6" rx="1.2"/><rect x="11.5" y="3" width="5.5" height="9" rx="1.2"/><rect x="3" y="11.5" width="5.5" height="5.5" rx="1.2"/><rect x="11.5" y="14" width="5.5" height="3" rx="1.2"/></svg>
+            <span>Overview</span>
+          </a>
+          <a class="nav-link" href="#channels" data-nav="channels">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16.5h14M5.2 13V9.5M10 13V5M14.8 13V7" /></svg>
+            <span>Channels</span>
+            <span class="nav-count">6</span>
+          </a>
+          <a class="nav-link" href="#candidates" data-nav="candidates">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="6.3" r="2.7"/><path d="M3.3 16c.2-2.6 2-4.2 4.7-4.2s4.5 1.6 4.7 4.2M14 5.2a2.6 2.6 0 0 1 0 5.1M15 12c1.2.6 1.8 1.9 1.9 3.6" /></svg>
+            <span>Candidates</span>
+          </a>
+          <a class="nav-link" href="#insights" data-nav="insights">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.7 11.8 8l5.5 2-5.5 1.9L10 17.3l-1.8-5.4L2.7 10l5.5-2L10 2.7Z"/><path d="m15.7 2 .6 1.7L18 4.3l-1.7.6-.6 1.7-.6-1.7-1.7-.6 1.7-.6.6-1.7Z"/></svg>
+            <span>Insights</span>
+            <span class="new-badge">NEW</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="plan-card">
+            <span class="plan-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5 12 7l5 .6-3.7 3.4 1 5-4.3-2.5-4.3 2.5 1-5L3 7.6 8 7l2-4.5Z"/></svg></span>
+            <strong>Make better hires</strong>
+            <p>Get more from every recruiting dollar.</p>
+            <a href="#insights">Explore insights <span aria-hidden="true">→</span></a>
+          </div>
+          <a class="nav-link settings-link" href="#settings" data-nav="settings">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.5"/><path d="m16 11.6 1.1.9-1.5 2.6-1.4-.5a6.4 6.4 0 0 1-1.4.8l-.3 1.5h-3l-.3-1.5a6.4 6.4 0 0 1-1.4-.8l-1.4.5-1.5-2.6 1.1-.9a6.7 6.7 0 0 1 0-1.6l-1.1-.9 1.5-2.6 1.4.5a6.4 6.4 0 0 1 1.4-.8l.3-1.5h3l.3 1.5a6.4 6.4 0 0 1 1.4.8l1.4-.5 1.5 2.6-1.1.9a6.7 6.7 0 0 1 0 1.6Z"/></svg>
+            <span>Settings</span>
+          </a>
+          <button class="profile-button" type="button" id="profileButton">
+            <span class="profile-avatar">AM</span>
+            <span class="profile-copy"><strong>Alex Morgan</strong><small>People lead</small></span>
+            <svg class="more-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="4" cy="10" r="1"/><circle cx="10" cy="10" r="1"/><circle cx="16" cy="10" r="1"/></svg>
+          </button>
+        </div>
+      </aside>
+
+      <main class="main-content" id="overview">
+        <header class="topbar">
+          <button class="menu-button icon-button" id="menuButton" type="button" aria-label="Toggle navigation" aria-expanded="false">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14"/></svg>
+          </button>
+          <div class="breadcrumbs"><span>Workspace</span><span class="crumb-separator">/</span><strong id="currentPageLabel">Overview</strong></div>
+          <div class="topbar-actions">
+            <button class="icon-button notification-button" type="button" id="notificationButton" aria-label="Notifications">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15.5 7.7a5.5 5.5 0 0 0-11 0c0 6-2 6-2 7.3h15c0-1.3-2-1.3-2-7.3ZM8 17h4"/></svg>
+              <span class="notification-dot"></span>
+            </button>
+            <span class="topbar-divider"></span>
+            <button class="help-button" type="button" id="helpButton"><span class="help-mark">?</span> Help center</button>
+          </div>
+        </header>
+
+        <div class="page-wrap">
+          <section class="page-heading">
+            <div>
+              <div class="eyebrow"><span class="eyebrow-dot"></span> RECRUITING PERFORMANCE</div>
+              <h1>Hiring, in focus.</h1>
+              <p class="page-subtitle">A clearer picture of where your best people come from.</p>
+            </div>
+            <div class="heading-actions">
+              <label class="sr-only" for="dateRange">Reporting period</label>
+              <span class="date-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20"><rect x="3" y="4.5" width="14" height="12.5" rx="2"/><path d="M6.5 2.5v4M13.5 2.5v4M3 8h14"/></svg>
+              </span>
+              <select id="dateRange" class="date-select">
+                <option value="30">Last 30 days</option>
+                <option value="90" selected>Last 90 days</option>
+                <option value="365">Last 12 months</option>
+                <option value="all">All time</option>
+              </select>
+              <button class="button button-primary" type="button" id="exportButton">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m0 0 3.5-3.5M10 12 6.5 8.5M4 13v3.5h12V13"/></svg>
+                Export report
+              </button>
+            </div>
+          </section>
+
+          <section class="metrics-grid" aria-label="Recruiting summary">
+            <article class="metric-card">
+              <div class="metric-top"><span class="metric-label">Total applicants</span><span class="metric-icon applicants-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="7.5" cy="6.5" r="2.5"/><path d="M2.8 16c.2-2.5 2-4 4.7-4s4.5 1.5 4.7 4M14.5 7a2.3 2.3 0 0 1 0 4.5M15 13c1.3.6 2 1.6 2.2 3"/></svg></span></div>
+              <div class="metric-value" id="applicantMetric">—</div>
+              <div class="metric-footer"><span class="trend positive" id="applicantTrend">—</span><span id="applicantComparison">vs. previous period</span></div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-top"><span class="metric-label">Successful hires</span><span class="metric-icon hires-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4 10.5 4 4 8-9"/><circle cx="10" cy="10" r="7.5"/></svg></span></div>
+              <div class="metric-value" id="hireMetric">—</div>
+              <div class="metric-footer"><span class="trend positive" id="hireTrend">—</span><span id="hireComparison">vs. previous period</span></div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-top"><span class="metric-label">Avg. time to hire</span><span class="metric-icon time-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M10 5.5V10l3 2"/></svg></span></div>
+              <div class="metric-value"><span id="timeMetric">—</span><span class="metric-unit">days</span></div>
+              <div class="metric-footer"><span class="trend positive" id="timeTrend">—</span><span id="timeComparison">vs. previous period</span></div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-top"><span class="metric-label">Cost per hire</span><span class="metric-icon cost-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5v15M13.5 6H8.3a2.3 2.3 0 0 0 0 4.6h3.4a2.3 2.3 0 0 1 0 4.6H6"/></svg></span></div>
+              <div class="metric-value" id="costMetric">—</div>
+              <div class="metric-footer"><span class="trend positive" id="costTrend">—</span><span id="costComparison">vs. previous period</span></div>
+            </article>
+          </section>
+
+          <section class="analytics-grid">
+            <article class="panel trend-panel">
+              <div class="panel-heading">
+                <div><h2>Hiring over time</h2><p>Applications and successful hires by month</p></div>
+                <button class="period-button" type="button" id="chartPeriod">Last 6 months <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>
+              </div>
+              <div class="chart-legend">
+                <span><i class="legend-dot applications-dot"></i>Applications</span>
+                <span><i class="legend-dot hires-dot"></i>Hires</span>
+              </div>
+              <div class="chart-wrap" id="trendChart" role="img" aria-label="Chart of applications and successful hires over the last six months"></div>
+            </article>
+
+            <article class="panel funnel-panel">
+              <div class="panel-heading">
+                <div><h2>Hiring funnel</h2><p>From first look to signed offer</p></div>
+                <button class="subtle-icon-button" type="button" id="funnelInfo" aria-label="About the hiring funnel">i</button>
+              </div>
+              <div class="funnel-summary"><span>Conversion rate</span><strong id="funnelRate">—</strong></div>
+              <div class="funnel-list" id="funnelList"></div>
+              <div class="funnel-footnote"><span class="footnote-dot"></span> Applicants in selected period</div>
+            </article>
+          </section>
+
+          <section class="panel channels-panel" id="channels">
+            <div class="panel-heading channels-heading">
+              <div><div class="section-kicker">SOURCE PERFORMANCE</div><h2>Which channels bring your best hires?</h2><p>Compare quality, conversion, and cost across your sources.</p></div>
+              <button class="text-button" type="button" data-jump="channels">View all channels <span aria-hidden="true">→</span></button>
+            </div>
+            <div class="table-scroll">
+              <table class="data-table channel-table">
+                <thead><tr><th>Recruiting channel</th><th>Applicants</th><th>Hires</th><th>Hire rate</th><th>Avg. quality</th><th>Cost per hire</th><th>Performance</th></tr></thead>
+                <tbody id="channelRows"></tbody>
+              </table>
+            </div>
+            <div class="table-footer"><span id="channelSummary">Showing all channels</span><span class="table-note"><span class="quality-dot"></span>Quality score from hiring manager feedback</span></div>
+          </section>
+
+          <section class="lower-grid">
+            <article class="panel candidates-panel" id="candidates">
+              <div class="panel-heading candidates-heading">
+                <div><div class="section-kicker">RECENT ACTIVITY</div><h2>Candidate pipeline</h2></div>
+                <div class="candidate-actions">
+                  <label class="search-box">
+                    <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.7" cy="8.7" r="5.7"/><path d="m13 13 4 4"/></svg>
+                    <span class="sr-only">Search candidates</span>
+                    <input id="candidateSearch" type="search" placeholder="Search candidates" autocomplete="off" />
+                  </label>
+                  <button class="button button-small" type="button" id="addCandidateButton"><span aria-hidden="true">+</span> Add candidate</button>
+                </div>
+              </div>
+              <div class="table-scroll">
+                <table class="data-table candidate-table">
+                  <thead><tr><th>Candidate</th><th>Role</th><th>Source</th><th>Stage</th><th>Quality</th><th>Applied</th></tr></thead>
+                  <tbody id="candidateRows"></tbody>
+                </table>
+              </div>
+              <div class="table-footer candidate-footer"><span id="candidateSummary">—</span><button class="text-button" type="button" data-jump="candidates">View candidate pipeline <span aria-hidden="true">→</span></button></div>
+            </article>
+
+            <aside class="panel insight-panel" id="insights">
+              <div class="insight-heading"><span class="insight-spark"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m10 2 1.9 5.7L18 10l-6.1 2.1L10 18l-1.9-5.9L2 10l6.1-2.3L10 2Z"/></svg></span><span>YOUR CHANNEL INSIGHT</span></div>
+              <h2 id="insightTitle">—</h2>
+              <p id="insightCopy">—</p>
+              <div class="insight-divider"></div>
+              <div class="insight-stat"><span>Top source by quality</span><strong id="topSource">—</strong></div>
+              <div class="insight-stat"><span>Highest hire rate</span><strong id="topConversion">—</strong></div>
+              <button class="insight-link" type="button" data-jump="channels">Explore channel insights <span aria-hidden="true">→</span></button>
+            </aside>
+          </section>
+
+          <section class="panel packages-panel" aria-labelledby="packageOverview">
+            <div class="panel-heading packages-heading">
+              <div>
+                <div class="section-kicker">GROWTH PACKAGES</div>
+                <h2 id="packageOverview">Flexible recruiting packages for every stage</h2>
+                <p>Scale your sourcing engine with channel-focused support tailored to hiring volume and role complexity.</p>
+              </div>
+              <button class="text-button" type="button">Compare options <span aria-hidden="true">→</span></button>
+            </div>
+
+            <div class="package-grid">
+              <article class="package-card">
+                <div class="package-badge">Starter</div>
+                <div class="package-header">
+                  <div>
+                    <p class="package-label">Source boost</p>
+                    <h3>$1,900<span>/mo</span></h3>
+                  </div>
+                  <span class="package-pill">Small team</span>
+                </div>
+                <p class="package-copy">A lean sourcing plan for early-stage hiring needs and one to two open roles at a time.</p>
+                <ul class="package-list">
+                  <li>LinkedIn + referrals</li>
+                  <li>2 active campaigns</li>
+                  <li>Weekly reporting</li>
+                </ul>
+                <div class="package-metrics">
+                  <div><span>Time to fill</span><strong>42 days</strong></div>
+                  <div><span>Quality</span><strong>4.3 / 5</strong></div>
+                </div>
+              </article>
+
+              <article class="package-card package-card--featured">
+                <div class="package-badge package-badge--featured">Most popular</div>
+                <div class="package-header">
+                  <div>
+                    <p class="package-label">Growth engine</p>
+                    <h3>$3,800<span>/mo</span></h3>
+                  </div>
+                  <span class="package-pill package-pill--featured">Best value</span>
+                </div>
+                <p class="package-copy">Balanced sourcing and conversion support across the strongest hiring channels for scale-up teams.</p>
+                <ul class="package-list">
+                  <li>4 hiring channels</li>
+                  <li>1.9x stronger pipeline</li>
+                  <li>Dedicated insights review</li>
+                </ul>
+                <div class="package-metrics">
+                  <div><span>Time to fill</span><strong>31 days</strong></div>
+                  <div><span>Quality</span><strong>4.6 / 5</strong></div>
+                </div>
+              </article>
+
+              <article class="package-card">
+                <div class="package-badge">Scale-up</div>
+                <div class="package-header">
+                  <div>
+                    <p class="package-label">Hiring sprint</p>
+                    <h3>$6,200<span>/mo</span></h3>
+                  </div>
+                  <span class="package-pill">High volume</span>
+                </div>
+                <p class="package-copy">For multi-role hiring programs that need a deeper bench, faster response time, and detailed channel data.</p>
+                <ul class="package-list">
+                  <li>6+ open roles</li>
+                  <li>Daily funnel tracking</li>
+                  <li>Priority candidate QA</li>
+                </ul>
+                <div class="package-metrics">
+                  <div><span>Time to fill</span><strong>24 days</strong></div>
+                  <div><span>Quality</span><strong>4.7 / 5</strong></div>
+                </div>
+              </article>
+
+              <article class="package-card">
+                <div class="package-badge">Executive</div>
+                <div class="package-header">
+                  <div>
+                    <p class="package-label">Talent advisory</p>
+                    <h3>$9,400<span>/mo</span></h3>
+                  </div>
+                  <span class="package-pill">Leadership</span>
+                </div>
+                <p class="package-copy">High-touch search and succession planning for key leadership roles requiring deeper market mapping.</p>
+                <ul class="package-list">
+                  <li>Executive outreach</li>
+                  <li>Market mapping</li>
+                  <li>Stakeholder reporting</li>
+                </ul>
+                <div class="package-metrics">
+                  <div><span>Time to fill</span><strong>18 days</strong></div>
+                  <div><span>Quality</span><strong>4.9 / 5</strong></div>
+                </div>
+              </article>
+            </div>
+
+            <div class="package-summary">
+              <div><span>Recommended mix</span><strong>LinkedIn + referrals + careers pages</strong></div>
+              <div><span>Pipeline lift</span><strong>+28% stronger conversion</strong></div>
+            </div>
+          </section>
+
+          <footer class="page-footer"><span>Talentwise <span aria-hidden="true">·</span> Recruitment analytics</span><span>Data last updated just now</span></footer>
+        </div>
+      </main>
+    </div>
+
+    <dialog class="candidate-dialog" id="candidateDialog" aria-labelledby="dialogTitle">
+      <form id="candidateForm" method="dialog">
+        <div class="dialog-heading">
+          <div><div class="section-kicker">CANDIDATE PIPELINE</div><h2 id="dialogTitle">Add a candidate</h2><p>Add a candidate to start tracking their source and progress.</p></div>
+          <button class="dialog-close" type="button" id="closeDialog" aria-label="Close dialog">×</button>
+        </div>
+        <div class="form-grid">
+          <label class="form-field form-span"><span>Full name</span><input name="name" required maxlength="70" placeholder="e.g. Jamie Rivera" /></label>
+          <label class="form-field form-span"><span>Role</span><input name="role" required maxlength="70" placeholder="e.g. Product Designer" /></label>
+          <label class="form-field"><span>Recruiting source</span><select name="source" required></select></label>
+          <label class="form-field"><span>Current stage</span><select name="stage" required><option>Applied</option><option>Screening</option><option>Interview</option><option>Offer</option><option>Hired</option></select></label>
+          <label class="form-field"><span>Quality score</span><select name="quality" required><option value="5">5 — Exceptional</option><option value="4" selected>4 — Strong</option><option value="3">3 — Good</option><option value="2">2 — Fair</option><option value="1">1 — Low</option></select></label>
+          <label class="form-field"><span>Application date</span><input name="date" type="date" required /></label>
+          <label class="form-field form-span" id="hiredOnField" hidden><span>Hire date</span><input name="hiredOn" type="date" /></label>
+        </div>
+        <div class="dialog-actions"><button class="button button-quiet" type="button" id="cancelDialog">Cancel</button><button class="button button-primary" type="submit">Add candidate</button></div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
