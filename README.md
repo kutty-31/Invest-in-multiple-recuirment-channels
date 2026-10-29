@@ -55,6 +55,8 @@ Open the frontend at [http://localhost:8080](http://localhost:8080). The API hea
 
 The optional `GOOGLE_CLIENT_ID` in `.env` enables Google sign-in in the containerized frontend; configure the same ID in Google Cloud and in production API environments. The local sample secret and MongoDB setup are for development only; never use them for a public deployment.
 
+AI role-title autocomplete uses the OpenAI API from the server. Set `OPENAI_API_KEY` (and optionally `OPENAI_MODEL`) in the API environment to enable it. The provider key is never sent to or embedded in the frontend.
+
 ## What’s included
 
 - Overview metrics for applicants, hires, hiring time, and cost per hire
@@ -63,6 +65,7 @@ The optional `GOOGLE_CLIENT_ID` in `.env` enables Google sign-in in the containe
 - A package comparison section with starter, growth, scale-up, and executive recruiting plans
 - Candidate search and a form for adding candidates to the pipeline
 - Username/password registration and sign-in with protected recruiting API access
+- Optional AI-powered job-title autocomplete in candidate editing
 - Authenticated candidate PDF resume uploads, downloads, and removal
 - Hire dates and time-to-hire tracking for successful hires
 - CSV export of candidate records in the selected reporting period

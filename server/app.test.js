@@ -290,6 +290,11 @@ test('recruiting APIs reject missing and invalid tokens', async () => {
   const missingToken = await supertest(app).get('/api/channels')
   assert.equal(missingToken.status, 401)
 
+  const missingAiToken = await supertest(app)
+    .post('/api/ai/autocomplete')
+    .send({ prefix: 'Senior Product' })
+  assert.equal(missingAiToken.status, 401)
+
   const missingMeToken = await supertest(app).get('/api/auth/me')
   assert.equal(missingMeToken.status, 401)
 
@@ -313,6 +318,69 @@ test('recruiting APIs reject missing and invalid tokens', async () => {
     .get('/api/candidates')
     .set('Authorization', `Bearer ${expiredToken}`)
   assert.equal(expired.status, 401)
+})
+
+test('AI role autocomplete validates input and protects the provider API key', async () => {
+  const originalApiKey = process.env.OPENAI_API_KEY
+  const originalFetch = globalThis.fetch
+  const providerCalls = []
+  process.env.OPENAI_API_KEY = 'test-provider-secret'
+  globalThis.fetch = async (url, options) => {
+    providerCalls.push({ url, options })
+    return new Response(JSON.stringify({
+      choices: [{ message: { content: '"Senior Product Designer"' } }],
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+  }
+
+  try {
+    const invalidPrefix = await request(app)
+      .post('/api/ai/autocomplete')
+      .send({ prefix: 'x' })
+    assert.equal(invalidPrefix.status, 400)
+    assert.equal(providerCalls.length, 0)
+
+    const unexpectedField = await request(app)
+      .post('/api/ai/autocomplete')
+      .send({ prefix: 'Senior Product', candidateName: 'Private Candidate' })
+    assert.equal(unexpectedField.status, 400)
+    assert.equal(providerCalls.length, 0)
+
+    const response = await request(app)
+      .post('/api/ai/autocomplete')
+      .send({ prefix: '  Senior Product  ' })
+
+    assert.equal(response.status, 200)
+    assert.deepEqual(response.body, {
+      data: { suggestion: 'Senior Product Designer' },
+    })
+    assert.equal(JSON.stringify(response.body).includes('test-provider-secret'), false)
+    assert.equal(providerCalls.length, 1)
+    assert.equal(providerCalls[0].url, 'https://api.openai.com/v1/chat/completions')
+    assert.equal(providerCalls[0].options.headers.Authorization, 'Bearer test-provider-secret')
+    assert.deepEqual(JSON.parse(providerCalls[0].options.body).messages[1], {
+      role: 'user',
+      content: 'Senior Product',
+    })
+  } finally {
+    globalThis.fetch = originalFetch
+    if (originalApiKey === undefined) delete process.env.OPENAI_API_KEY
+    else process.env.OPENAI_API_KEY = originalApiKey
+  }
+})
+
+test('AI role autocomplete reports missing provider configuration clearly', async () => {
+  const originalApiKey = process.env.OPENAI_API_KEY
+  delete process.env.OPENAI_API_KEY
+  try {
+    const response = await request(app)
+      .post('/api/ai/autocomplete')
+      .send({ prefix: 'Product Designer' })
+    assert.equal(response.status, 503)
+    assert.match(response.body.error, /Set OPENAI_API_KEY/)
+  } finally {
+    if (originalApiKey === undefined) delete process.env.OPENAI_API_KEY
+    else process.env.OPENAI_API_KEY = originalApiKey
+  }
 })
 
 test('candidate resume upload stores a private PDF, supports replacement, download, and removal', async () => {

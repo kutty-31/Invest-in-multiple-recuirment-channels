@@ -7,6 +7,7 @@ function CandidatePipeline({
   loadError,
   onRetry,
   onCandidateUpdate,
+  onRoleAutocomplete,
   onCandidateDelete,
   onResumeUpload,
   onResumeDownload,
@@ -45,6 +46,7 @@ function CandidatePipeline({
           candidates={candidates}
           channels={channels}
           onCandidateUpdate={onCandidateUpdate}
+          onRoleAutocomplete={onRoleAutocomplete}
           onCandidateDelete={onCandidateDelete}
           onResumeUpload={onResumeUpload}
           onResumeDownload={onResumeDownload}

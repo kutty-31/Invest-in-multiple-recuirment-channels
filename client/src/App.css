@@ -120,6 +120,11 @@ h1 { margin-bottom: 5px; color: #202a3a; font-size: 27px; font-weight: 750; lett
 .candidate-form { display: grid; gap: 13px; }
 .candidate-form label { display: grid; gap: 6px; color: #536073; font-size: 10px; font-weight: 650; }
 .candidate-form input, .candidate-form select { width: 100%; min-height: 36px; padding: 7px 9px; border: 1px solid #e4e9ef; border-radius: 6px; background: white; color: #354155; font-size: 11px; }
+.role-autocomplete-control { display: flex; align-items: center; gap: 7px; }
+.role-autocomplete-control input { min-width: 0; flex: 1; }
+.role-autocomplete-control .candidate-action { flex-shrink: 0; }
+.ai-autocomplete-status { color: #28775f; font-size: 9px; font-weight: 500; }
+.ai-autocomplete-status--error { color: #b54343; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
 .dialog-button { min-height: 34px; padding: 0 11px; border: 1px solid #e4e9ef; border-radius: 6px; background: #fff; color: #596679; cursor: pointer; font-size: 10px; font-weight: 650; }

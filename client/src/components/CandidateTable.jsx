@@ -7,6 +7,7 @@ function CandidateTable({
   candidates,
   channels,
   onCandidateUpdate,
+  onRoleAutocomplete,
   onCandidateDelete,
   onResumeUpload,
   onResumeDownload,
@@ -18,12 +19,29 @@ function CandidateTable({
   const [deletingCandidate, setDeletingCandidate] = useState(null)
   const [message, setMessage] = useState('')
   const [saving, setSaving] = useState(false)
+  const [rolePrefix, setRolePrefix] = useState('')
+  const [aiStatus, setAiStatus] = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
   const [resumeBusyId, setResumeBusyId] = useState('')
   const query = search.trim().toLowerCase()
   const filteredCandidates = candidates.filter((candidate) =>
     [candidate.name, candidate.role, candidate.source, candidate.stage]
       .some((value) => value.toLowerCase().includes(query)),
   )
+
+  async function completeRole() {
+    setAiLoading(true)
+    setAiStatus('')
+    try {
+      const suggestion = await onRoleAutocomplete(rolePrefix)
+      setRolePrefix(suggestion)
+      setAiStatus('AI suggestion added. Review and edit it before saving.')
+    } catch (error) {
+      setAiStatus(`Could not get an AI suggestion: ${error.message}`)
+    } finally {
+      setAiLoading(false)
+    }
+  }
 
   async function saveCandidate(event) {
     event.preventDefault()
@@ -198,6 +216,8 @@ function CandidateTable({
                       onClick={() => {
                         setEditingCandidate(candidate)
                         setEditingStage(candidate.stage)
+                        setRolePrefix(candidate.role)
+                        setAiStatus('')
                         setMessage('')
                       }}
                       aria-label={`Edit ${candidate.name}`}
@@ -252,7 +272,31 @@ function CandidateTable({
               </label>
               <label>
                 Role
-                <input name="role" defaultValue={editingCandidate.role} required maxLength="100" />
+                <div className="role-autocomplete-control">
+                  <input
+                    name="role"
+                    value={rolePrefix}
+                    onChange={(event) => {
+                      setRolePrefix(event.target.value)
+                      setAiStatus('')
+                    }}
+                    required
+                    maxLength="100"
+                  />
+                  <button
+                    className="candidate-action"
+                    type="button"
+                    onClick={() => void completeRole()}
+                    disabled={aiLoading || rolePrefix.trim().length < 2}
+                  >
+                    {aiLoading ? 'Thinking…' : 'AI complete'}
+                  </button>
+                </div>
+                {aiStatus && (
+                  <span className={aiStatus.startsWith('Could not') ? 'ai-autocomplete-status ai-autocomplete-status--error' : 'ai-autocomplete-status'} role={aiStatus.startsWith('Could not') ? 'alert' : 'status'}>
+                    {aiStatus}
+                  </span>
+                )}
               </label>
               <label>
                 Email

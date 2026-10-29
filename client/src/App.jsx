@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
+  autocompleteRole,
   downloadCandidateResume,
   getRecruitingData,
   removeCandidate as removeCandidateRequest,
@@ -132,6 +133,7 @@ function App() {
               loadError={candidateLoadError}
               onRetry={retryCandidateLoad}
               onCandidateUpdate={updateCandidate}
+              onRoleAutocomplete={(prefix) => autocompleteRole(prefix, session.accessToken)}
               onCandidateDelete={deleteCandidate}
               onResumeUpload={uploadResume}
               onResumeDownload={downloadResume}
