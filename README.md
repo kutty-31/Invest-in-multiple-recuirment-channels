@@ -37,7 +37,7 @@ The Vite-powered React frontend prototype is in [`client/`](./client/). From tha
 
 ## Mongoose models
 
-Initial MongoDB models for recruiting channels and candidates are in [`server/models/`](./server/models/). From `server/`, run `npm install`, `npm run check`, and `npm test` to validate the schemas. The models are not yet connected to an API or database server.
+The Express API connects to MongoDB through `MONGODB_URI` and uses Mongoose to read and write recruiting channels and candidates. See [`server/README.md`](./server/README.md) for setup, API endpoints, and tests.
 
 ## What’s included
 
