@@ -1,0 +1,29 @@
+meta {
+  name: Replace candidate
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/candidates/{{candidateId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "fullName": "Taylor Candidate",
+    "email": "taylor@example.com",
+    "role": "Product Designer",
+    "source": "{{channelId}}",
+    "stage": "Applied",
+    "qualityScore": 4.2,
+    "appliedAt": "2026-10-29T00:00:00.000Z",
+    "hiredAt": null,
+    "notes": "Updated candidate record"
+  }
+}

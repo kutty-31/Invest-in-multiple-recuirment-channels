@@ -1,0 +1,19 @@
+meta {
+  name: Upload candidate resume
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/candidates/{{candidateId}}/resume
+  body: multipart-form
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:multipart-form {
+  resume: @file(./resume.pdf)
+}

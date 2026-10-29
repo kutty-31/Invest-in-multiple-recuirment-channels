@@ -1,0 +1,22 @@
+meta {
+  name: Patch candidate
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/candidates/{{candidateId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "stage": "Interview",
+    "qualityScore": 4.5
+  }
+}

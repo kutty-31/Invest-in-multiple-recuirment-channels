@@ -39,6 +39,10 @@ The Vite-powered React frontend is in [`client/`](./client/). From that folder, 
 
 The Express API connects to MongoDB through `MONGODB_URI` and uses Mongoose to read and write recruiting channels and candidates. See [`server/README.md`](./server/README.md) for setup, API endpoints, and tests.
 
+## Bruno API collection
+
+The importable Bruno request collection is in [`bruno/talentwise/`](./bruno/talentwise/). It covers health, authentication, recruiting channels, candidates and résumé files, and analytics. See its README for local environment and token setup.
+
 ## What’s included
 
 - Overview metrics for applicants, hires, hiring time, and cost per hire
