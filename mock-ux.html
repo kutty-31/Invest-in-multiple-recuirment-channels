@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f7fb" />
+    <meta
+      name="description"
+      content="Talentwise mock UX: recruitment performance overview, channel comparison, candidate pipeline, and hiring journeys."
+    />
+    <title>Talentwise — Mock UX design</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #1d293b;
+        --muted: #718096;
+        --line: #e5eaf1;
+        --canvas: #f5f7fb;
+        --green: #23876e;
+        --purple: #7866d6;
+        --blue: #6386dc;
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+      }
+
+      * { box-sizing: border-box; }
+      html { min-width: 320px; scroll-behavior: smooth; }
+      body { margin: 0; background: var(--canvas); color: var(--ink); }
+      button, a { font: inherit; }
+      a { color: inherit; text-decoration: none; }
+      button:focus-visible, a:focus-visible { outline: 3px solid #9caff1; outline-offset: 3px; }
+      .layout { min-height: 100vh; display: grid; grid-template-columns: 220px minmax(0, 1fr); }
+      .sidebar { display: flex; flex-direction: column; padding: 26px 17px; border-right: 1px solid var(--line); background: #fff; }
+      .brand { display: flex; align-items: center; gap: 10px; margin: 0 0 40px 7px; color: #233149; font-size: 19px; font-weight: 800; letter-spacing: -.7px; }
+      .brand-mark { display: grid; width: 31px; height: 31px; place-items: center; border-radius: 10px; background: var(--green); color: white; font-size: 18px; }
+      .workspace { margin-bottom: 27px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; color: #58667c; font-size: 11px; }
+      .eyebrow { margin: 0 0 9px; color: #8995a8; font-size: 9px; font-weight: 800; letter-spacing: 1.2px; }
+      .nav { display: grid; gap: 5px; }
+      .nav a { display: flex; align-items: center; gap: 10px; padding: 11px; border-radius: 8px; color: #68768b; font-size: 12px; }
+      .nav a.active, .nav a:hover { background: #eaf5f1; color: #28775f; font-weight: 700; }
+      .nav-icon { width: 19px; text-align: center; font-size: 14px; }
+      .sidebar-note { margin-top: auto; padding: 13px; border-radius: 11px; background: #f7f5ff; color: #6858b8; font-size: 11px; line-height: 1.55; }
+      .sidebar-note strong { display: block; margin-bottom: 4px; }
+      main { min-width: 0; }
+      .topbar { height: 62px; display: flex; align-items: center; justify-content: space-between; padding: 0 36px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.82); color: #8792a3; font-size: 11px; }
+      .topbar strong { color: #39475c; }
+      .topbar-badge { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: #68768b; }
+      .content { width: min(1200px, 100%); margin: 0 auto; padding: 33px 36px 50px; }
+      .intro { display: grid; grid-template-columns: minmax(0, 1fr) 270px; align-items: end; gap: 30px; margin-bottom: 24px; }
+      .kicker { margin: 0 0 9px; color: var(--green); font-size: 9px; font-weight: 800; letter-spacing: 1.3px; }
+      h1 { margin: 0 0 8px; font-size: clamp(26px, 4vw, 36px); letter-spacing: -1.5px; }
+      .intro p { max-width: 650px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+      .audience { padding: 14px; border: 1px solid #dfeae5; border-radius: 12px; background: #f1f8f5; color: #49675c; font-size: 11px; line-height: 1.55; }
+      .audience strong { display: block; margin-bottom: 4px; color: #2f725d; }
+      .flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 23px 0 25px; padding: 15px; border: 1px solid var(--line); border-radius: 13px; background: #fff; }
+      .flow-step { position: relative; display: flex; align-items: center; gap: 9px; min-height: 40px; padding: 8px; border-radius: 8px; background: #f7f8fb; color: #657187; font-size: 10px; font-weight: 650; }
+      .flow-step:not(:last-child)::after { content: "→"; position: absolute; right: -9px; z-index: 1; color: #a0aabc; font-size: 13px; }
+      .flow-number { display: grid; width: 22px; height: 22px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: #e8f4ef; color: #2a7d66; font-size: 10px; font-weight: 800; }
+      .screen-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 13px; }
+      .screen-tab { padding: 9px 13px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: #66748a; cursor: pointer; font-size: 11px; font-weight: 700; }
+      .screen-tab[aria-selected="true"] { border-color: #b9d8cb; background: #eaf5f1; color: #28775f; }
+      .screen { display: none; overflow: hidden; border: 1px solid #e1e7ef; border-radius: 15px; background: #fff; box-shadow: 0 12px 35px rgba(37, 51, 76, .07); }
+      .screen.active { display: block; }
+      .screen-bar { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 15px 20px; border-bottom: 1px solid #edf0f4; background: #fcfcfd; }
+      .screen-bar strong { font-size: 12px; }
+      .screen-bar span { color: #8994a5; font-size: 10px; }
+      .screen-body { padding: 22px; }
+      .screen-heading { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin-bottom: 17px; }
+      .screen-heading h2 { margin: 0 0 4px; font-size: 19px; letter-spacing: -.5px; }
+      .screen-heading p { margin: 0; color: var(--muted); font-size: 11px; }
+      .screen-cta { padding: 9px 12px; border: 0; border-radius: 7px; background: var(--green); color: #fff; font-size: 10px; font-weight: 750; }
+      .filter { padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; color: #5f6b7f; font-size: 10px; }
+      .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px; }
+      .metric { padding: 15px; border: 1px solid #e9edf3; border-radius: 10px; background: linear-gradient(145deg, #fff, #fafbfe); }
+      .metric span, .metric small { display: block; color: #8490a2; font-size: 9px; }
+      .metric strong { display: block; margin: 8px 0 5px; color: #24334c; font-size: 23px; letter-spacing: -.7px; }
+      .metric small { color: #319071; }
+      .overview-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 13px; margin-top: 13px; }
+      .mini-panel { min-width: 0; padding: 16px; border: 1px solid #e9edf3; border-radius: 10px; }
+      .mini-panel h3 { margin: 0 0 4px; font-size: 12px; }
+      .mini-panel > p { margin: 0; color: #8994a5; font-size: 10px; }
+      .chart { display: flex; align-items: end; gap: 13px; height: 118px; margin: 19px 0 4px; padding: 0 8px; border-bottom: 1px solid #e8edf2; }
+      .bar-set { display: flex; flex: 1; align-items: end; justify-content: center; gap: 4px; height: 100%; }
+      .bar { width: 13px; min-height: 5px; border-radius: 4px 4px 0 0; background: #8c82dc; }
+      .bar.hire { background: #58a98d; }
+      .chart-labels { display: flex; justify-content: space-around; color: #929cad; font-size: 9px; }
+      .funnel-row { display: grid; grid-template-columns: 67px 1fr 22px; align-items: center; gap: 8px; margin-top: 14px; color: #778398; font-size: 9px; }
+      .track { height: 7px; overflow: hidden; border-radius: 8px; background: #eef1f5; }
+      .track i { display: block; height: 100%; border-radius: inherit; background: #7781d0; }
+      .funnel-row:nth-child(4) .track i { background: #5caf91; }
+      .funnel-row b { color: #41516a; text-align: right; }
+      .journey-note { display: flex; gap: 10px; margin-top: 16px; padding: 13px; border-radius: 9px; background: #f4f7fc; color: #68768b; font-size: 10px; line-height: 1.5; }
+      .journey-note strong { color: #36455b; }
+      .table { width: 100%; border-collapse: collapse; text-align: left; }
+      .table th { padding: 10px 12px; background: #f8f9fb; color: #8994a5; font-size: 9px; font-weight: 700; }
+      .table td { padding: 12px; border-bottom: 1px solid #eef1f5; color: #526078; font-size: 10px; }
+      .table tr:last-child td { border: 0; }
+      .source { color: #34445c; font-weight: 700; }
+      .pill { display: inline-block; padding: 4px 7px; border-radius: 5px; background: #eaf5f0; color: #398369; font-size: 9px; }
+      .pill.purple { background: #f1edfc; color: #7865bc; }
+      .pill.blue { background: #edf3fc; color: #577ab1; }
+      .quality { color: #d29b49; letter-spacing: 1px; }
+      .table-tools { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 12px; }
+      .search { min-width: 210px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 7px; color: #929cad; font-size: 10px; }
+      .journeys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; margin-top: 17px; }
+      .journey { padding: 15px; border: 1px solid #e9edf3; border-radius: 10px; background: #fcfcfe; }
+      .journey-label { margin-bottom: 8px; color: #7466c5; font-size: 9px; font-weight: 800; letter-spacing: .9px; text-transform: uppercase; }
+      .journey h3 { margin: 0 0 7px; font-size: 12px; }
+      .journey p { margin: 0; color: #738096; font-size: 10px; line-height: 1.6; }
+      .flowline { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 12px; color: #5f6d82; font-size: 9px; }
+      .flowline span { padding: 5px 7px; border-radius: 5px; background: #eff3f7; }
+      .flowline b { color: #a3adba; }
+      .principles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+      .principle { padding: 13px; border-left: 3px solid #69ad94; border-radius: 0 8px 8px 0; background: #f5f9f7; color: #6b7a89; font-size: 10px; line-height: 1.5; }
+      .principle strong { display: block; margin-bottom: 4px; color: #33475b; font-size: 11px; }
+      .footer { margin-top: 17px; color: #97a1b0; font-size: 9px; text-align: right; }
+      @media (max-width: 900px) {
+        .layout { grid-template-columns: 68px minmax(0, 1fr); }
+        .sidebar { align-items: center; padding: 19px 8px; }
+        .brand { margin: 0 0 32px; }
+        .brand > span:last-child, .workspace, .nav-label, .sidebar-note { display: none; }
+        .nav a { justify-content: center; width: 43px; padding: 11px 6px; }
+        .content { padding: 25px 22px 40px; }
+        .topbar { padding: 0 22px; }
+        .package-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (max-width: 650px) {
+        .layout { display: block; }
+        .sidebar { display: block; padding: 12px 14px; border-right: 0; border-bottom: 1px solid var(--line); }
+        .brand { display: inline-flex; margin: 0; font-size: 16px; }
+        .brand-mark { width: 27px; height: 27px; }
+        .nav { float: right; display: flex; gap: 2px; }
+        .nav a { width: auto; padding: 7px; }
+        .nav-icon { width: 16px; }
+        .topbar { height: 48px; padding: 0 15px; }
+        .content { padding: 21px 14px 32px; }
+        .intro { grid-template-columns: 1fr; gap: 13px; }
+        .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; padding: 10px; }
+        .flow-step::after { display: none; }
+        .screen-body { padding: 14px; }
+        .screen-heading { align-items: flex-start; flex-direction: column; }
+        .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .overview-grid, .journeys, .principles { grid-template-columns: 1fr; }
+        .table-scroll { overflow-x: auto; }
+        .table { min-width: 620px; }
+        .screen-bar { padding: 12px 14px; }
+        .table-tools { align-items: flex-start; flex-direction: column; }
+        .search { width: 100%; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar" aria-label="Mock application navigation">
+        <a class="brand" href="#overview" aria-label="Talentwise mock UX home">
+          <span class="brand-mark" aria-hidden="true">✦</span><span>talentwise</span>
+        </a>
+        <div class="workspace">N &nbsp; Northstar Studio<br />&nbsp;&nbsp;&nbsp;&nbsp;Growth team</div>
+        <nav class="nav" aria-label="Primary">
+          <a class="active" href="#overview" data-screen="overview" aria-label="Overview"><span class="nav-icon" aria-hidden="true">▦</span><span class="nav-label">Overview</span></a>
+          <a href="#channels" data-screen="channels" aria-label="Channels"><span class="nav-icon" aria-hidden="true">▥</span><span class="nav-label">Channels</span></a>
+          <a href="#candidates" data-screen="candidates" aria-label="Candidates"><span class="nav-icon" aria-hidden="true">♙</span><span class="nav-label">Candidates</span></a>
+          <a href="#journeys" data-screen="journeys" aria-label="Journeys"><span class="nav-icon" aria-hidden="true">↗</span><span class="nav-label">Journeys</span></a>
+        </nav>
+        <div class="sidebar-note"><strong>Design intent</strong>Make hiring-source performance understandable and actionable for a busy people lead.</div>
+      </aside>
+
+      <main>
+        <header class="topbar">
+          <span>Workspace &nbsp; / &nbsp; <strong id="currentScreenName">Overview</strong></span>
+          <span class="topbar-badge">UX concept · Sample data</span>
+        </header>
+        <div class="content">
+          <section class="intro">
+            <div>
+              <p class="kicker">MOCK UX DESIGN · TALENTWISE</p>
+              <h1>Hiring, in focus.</h1>
+              <p>A recruitment-channel analytics workspace that helps people teams decide where to invest, understand the candidate funnel, and move high-quality candidates forward.</p>
+            </div>
+            <div class="audience"><strong>Primary user: People lead</strong>Needs a quick, trustworthy view of recruiting outcomes, channel ROI, and candidate next steps across several open roles.</div>
+          </section>
+
+          <section aria-label="Primary navigation flow">
+            <p class="eyebrow">PRODUCT FLOW</p>
+            <div class="flow">
+              <a class="flow-step" href="#overview" data-screen="overview"><span class="flow-number">1</span>Review hiring overview</a>
+              <a class="flow-step" href="#channels" data-screen="channels"><span class="flow-number">2</span>Compare channels</a>
+              <a class="flow-step" href="#candidates" data-screen="candidates"><span class="flow-number">3</span>Inspect candidates</a>
+              <a class="flow-step" href="#journeys" data-screen="journeys"><span class="flow-number">4</span>Take action & learn</a>
+            </div>
+          </section>
+
+          <div class="screen-nav" role="tablist" aria-label="Mock screens">
+            <button class="screen-tab" id="tab-overview" type="button" role="tab" aria-controls="overview" aria-selected="true" data-screen="overview">01 · Overview</button>
+            <button class="screen-tab" id="tab-channels" type="button" role="tab" aria-controls="channels" aria-selected="false" data-screen="channels">02 · Channels</button>
+            <button class="screen-tab" id="tab-candidates" type="button" role="tab" aria-controls="candidates" aria-selected="false" data-screen="candidates">03 · Candidates</button>
+            <button class="screen-tab" id="tab-journeys" type="button" role="tab" aria-controls="journeys" aria-selected="false" data-screen="journeys">04 · Journeys</button>
+          </div>
+
+          <section class="screen active" id="overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="0">
+            <div class="screen-bar"><strong>Recruiting performance</strong><span>Reporting period: Last 90 days &nbsp; · &nbsp; Export report</span></div>
+            <div class="screen-body">
+              <div class="screen-heading">
+                <div><h2>Hiring, in focus.</h2><p>A clearer picture of where your best people come from.</p></div>
+                <span class="filter">Last 90 days &nbsp;⌄</span>
+              </div>
+              <div class="metric-grid" aria-label="Summary metrics">
+                <div class="metric"><span>Total applicants</span><strong>248</strong><small>↑ 12% vs. prior period</small></div>
+                <div class="metric"><span>Successful hires</span><strong>18</strong><small>↑ 3 hires vs. prior period</small></div>
+                <div class="metric"><span>Avg. time to hire</span><strong>31 <small>days</small></strong><small>↓ 4 days faster</small></div>
+                <div class="metric"><span>Cost per hire</span><strong>$2.4k</strong><small>↓ 8% vs. prior period</small></div>
+              </div>
+              <div class="overview-grid">
+                <div class="mini-panel">
+                  <h3>Hiring over time</h3><p>Applications and successful hires by month</p>
+                  <div class="chart" role="img" aria-label="Illustrative six-month chart of applications and hires">
+                    <div class="bar-set"><i class="bar" style="height:40%"></i><i class="bar hire" style="height:22%"></i></div>
+                    <div class="bar-set"><i class="bar" style="height:56%"></i><i class="bar hire" style="height:30%"></i></div>
+                    <div class="bar-set"><i class="bar" style="height:46%"></i><i class="bar hire" style="height:24%"></i></div>
+                    <div class="bar-set"><i class="bar" style="height:70%"></i><i class="bar hire" style="height:43%"></i></div>
+                    <div class="bar-set"><i class="bar" style="height:63%"></i><i class="bar hire" style="height:36%"></i></div>
+                    <div class="bar-set"><i class="bar" style="height:91%"></i><i class="bar hire" style="height:55%"></i></div>
+                  </div>
+                  <div class="chart-labels"><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span></div>
+                </div>
+                <div class="mini-panel">
+                  <h3>Hiring funnel</h3><p>Spot where candidates progress or stall</p>
+                  <div class="funnel-row"><span>Applied</span><div class="track"><i style="width:100%"></i></div><b>248</b></div>
+                  <div class="funnel-row"><span>Screening</span><div class="track"><i style="width:72%"></i></div><b>179</b></div>
+                  <div class="funnel-row"><span>Interview</span><div class="track"><i style="width:43%"></i></div><b>107</b></div>
+                  <div class="funnel-row"><span>Hired</span><div class="track"><i style="width:19%"></i></div><b>18</b></div>
+                </div>
+              </div>
+              <div class="journey-note"><strong>Next step →</strong><span>Use the channel comparison to decide where to focus the next recruiting budget.</span></div>
+            </div>
+          </section>
+
+          <section class="screen" id="channels" role="tabpanel" aria-labelledby="tab-channels" tabindex="0">
+            <div class="screen-bar"><strong>Channel performance</strong><span>Data is illustrative for this UX concept</span></div>
+            <div class="screen-body">
+              <div class="screen-heading">
+                <div><h2>Which channels bring your best hires?</h2><p>Compare hiring volume, conversion, quality, and estimated cost.</p></div>
+                <span class="filter">Last 90 days &nbsp;⌄</span>
+              </div>
+              <div class="metric-grid">
+                <div class="metric"><span>Top quality source</span><strong>Referrals</strong><small>4.8 / 5 average</small></div>
+                <div class="metric"><span>Most applicants</span><strong>LinkedIn</strong><small>82 candidates</small></div>
+                <div class="metric"><span>Best hire rate</span><strong>18.4%</strong><small>Employee referrals</small></div>
+                <div class="metric"><span>Lowest cost / hire</span><strong>$1,180</strong><small>Careers page</small></div>
+              </div>
+              <div class="mini-panel" style="margin-top:13px">
+                <div class="table-tools"><div><h3>Channel comparison</h3><p>Use quality and cost together to balance volume and value.</p></div><span class="filter">Sort: Best value &nbsp;⌄</span></div>
+                <div class="table-scroll">
+                  <table class="table">
+                    <thead><tr><th>Recruiting channel</th><th>Applicants</th><th>Hires</th><th>Hire rate</th><th>Avg. quality</th><th>Cost per hire</th><th>Signal</th></tr></thead>
+                    <tbody>
+                      <tr><td class="source">↗ Employee referral</td><td>38</td><td>7</td><td>18.4%</td><td class="quality">★★★★★ 4.8</td><td>$1,420</td><td><span class="pill">Best quality</span></td></tr>
+                      <tr><td class="source">in LinkedIn</td><td>82</td><td>5</td><td>6.1%</td><td class="quality">★★★★☆ 4.3</td><td>$2,960</td><td><span class="pill blue">High volume</span></td></tr>
+                      <tr><td class="source">N Careers page</td><td>47</td><td>3</td><td>6.4%</td><td class="quality">★★★★☆ 4.5</td><td>$1,180</td><td><span class="pill">Low cost</span></td></tr>
+                      <tr><td class="source">i Indeed</td><td>55</td><td>2</td><td>3.6%</td><td class="quality">★★★☆☆ 3.9</td><td>$2,050</td><td><span class="pill purple">Optimize</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="journey-note"><strong>Decision support →</strong><span>Keep referrals for quality; test a careers-page campaign before increasing paid spend.</span></div>
+            </div>
+          </section>
+
+          <section class="screen" id="candidates" role="tabpanel" aria-labelledby="tab-candidates" tabindex="0">
+            <div class="screen-bar"><strong>Candidate pipeline</strong><span>Search, review stage, and add candidate</span></div>
+            <div class="screen-body">
+              <div class="screen-heading">
+                <div><h2>Move the right candidates forward.</h2><p>Filter the pipeline and see how each candidate entered the funnel.</p></div>
+                <button class="screen-cta" type="button">＋ Add candidate</button>
+              </div>
+              <div class="table-tools"><span class="search">⌕ &nbsp; Search by name, role, or source</span><span class="filter">Stage: All stages &nbsp;⌄</span><span class="filter">Source: All channels &nbsp;⌄</span></div>
+              <div class="mini-panel" style="padding:0">
+                <div class="table-scroll">
+                  <table class="table">
+                    <thead><tr><th>Candidate</th><th>Role</th><th>Source</th><th>Stage</th><th>Quality</th><th>Applied</th><th>Next action</th></tr></thead>
+                    <tbody>
+                      <tr><td class="source">Olivia Chen</td><td>Product Designer</td><td>LinkedIn</td><td><span class="pill purple">Interview</span></td><td class="quality">★★★★★ 5.0</td><td>2 days ago</td><td>Review notes</td></tr>
+                      <tr><td class="source">Noah Williams</td><td>Backend Engineer</td><td>Referral</td><td><span class="pill">Hired</span></td><td class="quality">★★★★★ 5.0</td><td>5 days ago</td><td>View profile</td></tr>
+                      <tr><td class="source">Amara Okafor</td><td>Product Manager</td><td>Careers page</td><td><span class="pill blue">Screening</span></td><td class="quality">★★★★☆ 4.0</td><td>8 days ago</td><td>Schedule screen</td></tr>
+                      <tr><td class="source">Ethan Patel</td><td>Data Analyst</td><td>Indeed</td><td><span class="pill blue">Applied</span></td><td class="quality">★★★☆☆ 3.0</td><td>10 days ago</td><td>Review application</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="journey-note"><strong>Candidate action →</strong><span>Open a candidate to review source and quality context, then schedule the next stage or update their status.</span></div>
+            </div>
+          </section>
+
+          <section class="screen" id="journeys" role="tabpanel" aria-labelledby="tab-journeys" tabindex="0">
+            <div class="screen-bar"><strong>Primary user journeys</strong><span>Intent, screen sequence, and key interaction</span></div>
+            <div class="screen-body">
+              <div class="screen-heading"><div><h2>Designed around decisions, not just data.</h2><p>Three core tasks connect reporting to a clear recruiting action.</p></div></div>
+              <div class="journeys">
+                <article class="journey"><div class="journey-label">Journey 01 · Budget allocation</div><h3>Choose the next channel to invest in</h3><p>People lead checks performance, compares conversion with quality and cost, then prioritizes one channel to scale or test.</p><div class="flowline"><span>Overview</span><b>→</b><span>Channel table</span><b>→</b><span>Budget choice</span></div></article>
+                <article class="journey"><div class="journey-label">Journey 02 · Candidate progression</div><h3>Find a candidate and move them forward</h3><p>Recruiter searches the pipeline, checks the candidate's source and stage, then records an interview, offer, or hire.</p><div class="flowline"><span>Candidates</span><b>→</b><span>Search / review</span><b>→</b><span>Next action</span></div></article>
+                <article class="journey"><div class="journey-label">Journey 03 · Funnel diagnosis</div><h3>Spot a bottleneck and ask why</h3><p>Hiring manager reviews funnel counts, identifies a drop-off stage, then compares channel and candidate context before changing the process.</p><div class="flowline"><span>Overview funnel</span><b>→</b><span>Stage detail</span><b>→</b><span>Process change</span></div></article>
+              </div>
+              <p class="eyebrow" style="margin-top:23px">UX PRINCIPLES</p>
+              <div class="principles">
+                <div class="principle"><strong>Orient quickly</strong>Consistent workspace navigation, a clear date range, and a concise metric summary establish context.</div>
+                <div class="principle"><strong>Make comparisons fair</strong>Show volume, hire rate, quality, and cost together instead of rewarding volume alone.</div>
+                <div class="principle"><strong>Connect insight to action</strong>Every key screen suggests a useful next step and preserves the user's path back to the full overview.</div>
+              </div>
+            </div>
+          </section>
+          <p class="footer">Mock UX only · Sample metrics and interactions · Not connected to live recruiting data</p>
+        </div>
+      </main>
+    </div>
+    <script>
+      const screenNames = {
+        overview: 'Overview',
+        channels: 'Channels',
+        candidates: 'Candidates',
+        journeys: 'Journeys',
+      };
+
+      function selectScreen(screenId, updateLocation = true) {
+        const screen = document.getElementById(screenId);
+        if (!screen || !screenNames[screenId]) return;
+        document.querySelectorAll('.screen').forEach((item) => item.classList.toggle('active', item === screen));
+        document.querySelectorAll('[data-screen]').forEach((item) => {
+          const selected = item.dataset.screen === screenId;
+          if (item.matches('.screen-tab')) item.setAttribute('aria-selected', String(selected));
+          if (item.matches('.nav a')) item.classList.toggle('active', selected);
+        });
+        document.getElementById('currentScreenName').textContent = screenNames[screenId];
+        if (updateLocation) history.replaceState(null, '', `#${screenId}`);
+      }
+
+      document.querySelectorAll('[data-screen]').forEach((control) => {
+        control.addEventListener('click', (event) => {
+          event.preventDefault();
+          selectScreen(control.dataset.screen);
+        });
+      });
+
+      document.querySelectorAll('.screen-tab').forEach((tab, index, tabs) => {
+        tab.addEventListener('keydown', (event) => {
+          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+          event.preventDefault();
+          const direction = event.key === 'ArrowRight' ? 1 : -1;
+          const next = tabs[(index + direction + tabs.length) % tabs.length];
+          next.focus();
+          selectScreen(next.dataset.screen);
+        });
+      });
+
+      const initialScreen = window.location.hash.slice(1);
+      if (screenNames[initialScreen]) selectScreen(initialScreen, false);
+    </script>
+  </body>
+</html>
