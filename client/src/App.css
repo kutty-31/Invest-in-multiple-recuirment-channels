@@ -181,7 +181,7 @@ h1 { margin-bottom: 5px; color: #202a3a; font-size: 27px; font-weight: 750; lett
   .chart { gap: 6px; padding-right: 12px; padding-left: 12px; }
   .panel-heading { padding-right: 12px; padding-left: 12px; }
   .channel-preview .data-table { min-width: 675px; }
-  .full-panel .data-table { min-width: 760px; }
+  .full-panel .data-table { min-width: 900px; }
   .full-panel .panel-heading { align-items: flex-start; }
   .search-field input { width: 88px; }
   .page-footer { font-size: 7px; }
@@ -230,6 +230,14 @@ h1 { margin-bottom: 5px; color: #202a3a; font-size: 27px; font-weight: 750; lett
 .auth-divider::before, .auth-divider::after { height: 1px; flex: 1; background: #e9edf1; content: ''; }
 .google-signin-button { display: flex; justify-content: center; min-height: 40px; }
 .google-config-note { margin: 0; color: #929baa; font-size: 9px; text-align: center; }
+.resume-actions { display: flex; align-items: center; gap: 5px; }
+.resume-name { max-width: 90px; overflow: hidden; color: #788496; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.resume-upload-label { display: inline-flex; min-height: 27px; align-items: center; padding: 0 8px; border: 1px solid #dfe8e4; border-radius: 6px; background: #f5faf8; color: #28775f; cursor: pointer; font-size: 9px; font-weight: 700; white-space: nowrap; }
+.resume-upload-label:hover { border-color: #9dc8b9; background: #eaf5f1; }
+.resume-upload-label input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); }
+.resume-upload-label:focus-within { outline: 2px solid #4a9b82; outline-offset: 2px; }
+.resume-upload-label:has(input:disabled) { cursor: wait; opacity: .7; }
+.resume-actions .candidate-action:disabled { cursor: wait; opacity: .65; }
 
 @media (max-width: 560px) {
   .topbar-account { gap: 7px; }

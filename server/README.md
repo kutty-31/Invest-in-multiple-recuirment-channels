@@ -6,6 +6,7 @@ This package contains the Express API and MongoDB models for the Talentwise recr
 
 - **RecruitingChannel** — validates channel name and type, monthly spend, active status, and description. Channel names are unique.
 - **Candidate** — validates candidate identity, role, recruiting-source reference, pipeline stage, quality score, and application/hire dates. Hires must have a hire date on or after application; other stages cannot have one. `daysToHire` is a virtual value.
+- **Candidate resume** — stores private PDF metadata on a candidate; the file itself stays in server-side private storage.
 
 Both schemas use Mongoose timestamps and strict field checking. Candidate stage/date and source/stage indexes support the main pipeline queries.
 
@@ -47,11 +48,16 @@ Send authenticated API requests with `Authorization: Bearer <accessToken>`. The 
 | GET | `/api/channels/:id/candidates` | List candidates related to a recruiting channel |
 | GET, POST | `/api/candidates` | List/filter candidates or create a candidate |
 | GET, PATCH, PUT, DELETE | `/api/candidates/:id` | Read, partially update, replace, or delete a candidate |
+| POST | `/api/candidates/:id/resume` | Upload or replace a candidate's PDF resume (multipart field `resume`) |
+| GET | `/api/candidates/:id/resume` | Download the authenticated candidate's resume |
+| DELETE | `/api/candidates/:id/resume` | Remove the candidate's resume |
 | POST | `/api/candidates/bulk` | Validate and create up to 100 candidates in one request |
 | GET | `/api/analytics/overview` | Read all-time totals, stage counts, and monthly hiring trends |
 | GET | `/api/analytics/channels` | Compare applicant volume, hires, hire rate, and candidate quality by channel |
 
-Each candidate stores a required `source` ObjectId reference to a recruiting channel; the channel model exposes the inverse relationship through a Mongoose virtual. `GET /api/channels/:id/candidates` populates that relationship and returns the channel with its related candidate records, using `page` and `limit` pagination. Candidate listing supports `stage`, `source`, `q`, `appliedFrom`, `appliedTo`, `page`, and `limit`. Lists return `{ data, pagination }`. Candidate responses populate the channel source. PUT replaces all mutable fields; omitted optional fields are cleared and schema defaults are applied. PATCH remains available for partial updates. Candidate PUT requires a valid, existing `source`. A channel that already has candidates is archived rather than removed. Bulk creation accepts `{ "candidates": [...] }`, validates every record and source before writing, and rejects invalid batches without inserting partial data; batches are limited to 100 records. The overview accepts an optional `months` parameter from 1 to 12 (default 6); it includes zero-count months and reports all-time totals separately. Channel analytics includes inactive channels and returns null for quality when a channel has no candidate records.
+Each candidate stores a required `source` ObjectId reference to a recruiting channel; the channel model exposes the inverse relationship through a Mongoose virtual. `GET /api/channels/:id/candidates` populates that relationship and returns the channel with its related candidate records, using `page` and `limit` pagination. Candidate listing supports `stage`, `source`, `q`, `appliedFrom`, `appliedTo`, `page`, and `limit`. Lists return `{ data, pagination }`. Candidate responses populate the channel source and include resume metadata without exposing the private storage key. PUT replaces all mutable fields; omitted optional fields are cleared and schema defaults are applied. PATCH remains available for partial updates. Candidate PUT requires a valid, existing `source`. A channel that already has candidates is archived rather than removed. Bulk creation accepts `{ "candidates": [...] }`, validates every record and source before writing, and rejects invalid batches without inserting partial data; batches are limited to 100 records. The overview accepts an optional `months` parameter from 1 to 12 (default 6); it includes zero-count months and reports all-time totals separately. Channel analytics includes inactive channels and returns null for quality when a channel has no candidate records.
+
+Resume upload accepts a single PDF up to 5 MB as the multipart `resume` field. The API checks the declared type and file extension, then verifies the file signature before saving. Files are stored outside public/static paths under `server/private_uploads` by default (override with `RESUME_STORAGE_DIR`); keep this directory private and on persistent storage in production. Download and removal require authentication.
 
 ## Validate
 

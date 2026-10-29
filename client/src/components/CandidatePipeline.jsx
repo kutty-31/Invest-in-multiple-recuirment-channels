@@ -8,6 +8,9 @@ function CandidatePipeline({
   onRetry,
   onCandidateUpdate,
   onCandidateDelete,
+  onResumeUpload,
+  onResumeDownload,
+  onResumeDelete,
   search,
   onSearchChange,
 }) {
@@ -43,6 +46,9 @@ function CandidatePipeline({
           channels={channels}
           onCandidateUpdate={onCandidateUpdate}
           onCandidateDelete={onCandidateDelete}
+          onResumeUpload={onResumeUpload}
+          onResumeDownload={onResumeDownload}
+          onResumeDelete={onResumeDelete}
           search={search}
         />
       )}

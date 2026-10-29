@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict'
+import { mkdtemp, readdir, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { after, before, beforeEach, test } from 'node:test'
 import bcrypt from 'bcryptjs'
 import express from 'express'
@@ -13,6 +16,8 @@ import { createAuthRouter } from './routes/auth.js'
 import User from './models/User.js'
 
 let mongo
+let resumeDirectory
+const originalResumeDirectory = process.env.RESUME_STORAGE_DIR
 const testSecret = 'test-secret-with-at-least-thirty-two-bytes'
 process.env.JWT_SECRET = testSecret
 process.env.GOOGLE_CLIENT_ID = 'talentwise-test-client.apps.googleusercontent.com'
@@ -41,6 +46,8 @@ function request(appInstance) {
 }
 
 before(async () => {
+  resumeDirectory = await mkdtemp(join(tmpdir(), 'talentwise-resumes-'))
+  process.env.RESUME_STORAGE_DIR = resumeDirectory
   mongo = await MongoMemoryServer.create()
   await mongoose.connect(mongo.getUri())
 })
@@ -56,6 +63,12 @@ beforeEach(async () => {
 after(async () => {
   await mongoose.disconnect()
   await mongo.stop()
+  await rm(resumeDirectory, { recursive: true, force: true })
+  if (originalResumeDirectory === undefined) {
+    delete process.env.RESUME_STORAGE_DIR
+  } else {
+    process.env.RESUME_STORAGE_DIR = originalResumeDirectory
+  }
 })
 
 async function createChannel(overrides = {}) {
@@ -63,6 +76,20 @@ async function createChannel(overrides = {}) {
     .post('/api/channels')
     .send({ name: 'Employee referral', type: 'referral', ...overrides })
 
+  assert.equal(response.status, 201)
+  return response.body.data
+}
+
+async function createCandidate(overrides = {}) {
+  const channel = await createChannel()
+  const response = await request(app)
+    .post('/api/candidates')
+    .send({
+      fullName: 'Taylor Candidate',
+      role: 'Product Designer',
+      source: channel._id,
+      ...overrides,
+    })
   assert.equal(response.status, 201)
   return response.body.data
 }
@@ -286,6 +313,101 @@ test('recruiting APIs reject missing and invalid tokens', async () => {
     .get('/api/candidates')
     .set('Authorization', `Bearer ${expiredToken}`)
   assert.equal(expired.status, 401)
+})
+
+test('candidate resume upload stores a private PDF, supports replacement, download, and removal', async () => {
+  const candidate = await createCandidate()
+  const firstPdf = Buffer.from('%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF')
+  const uploaded = await request(app)
+    .post(`/api/candidates/${candidate._id}/resume`)
+    .attach('resume', firstPdf, { filename: 'Taylor Resume.pdf', contentType: 'application/pdf' })
+
+  assert.equal(uploaded.status, 201)
+  assert.equal(uploaded.body.data.originalName, 'Taylor Resume.pdf')
+  assert.equal(uploaded.body.data.size, firstPdf.length)
+  assert.equal(uploaded.body.data.contentType, 'application/pdf')
+  assert.equal('storageKey' in uploaded.body.data, false)
+  assert.ok(uploaded.body.data.uploadedAt)
+  assert.equal((await readdir(resumeDirectory)).length, 1)
+
+  const candidateList = await request(app).get('/api/candidates')
+  assert.equal(candidateList.body.data[0].resume.originalName, 'Taylor Resume.pdf')
+  assert.equal('storageKey' in candidateList.body.data[0].resume, false)
+
+  const download = await request(app).get(`/api/candidates/${candidate._id}/resume`)
+  assert.equal(download.status, 200)
+  assert.equal(download.headers['content-type'], 'application/octet-stream')
+  assert.match(download.headers['content-disposition'], /attachment/)
+  assert.equal(download.headers['x-content-type-options'], 'nosniff')
+  assert.deepEqual(download.body, firstPdf)
+
+  const replacementPdf = Buffer.from('%PDF-1.7\nreplacement document')
+  const replacement = await request(app)
+    .post(`/api/candidates/${candidate._id}/resume`)
+    .attach('resume', replacementPdf, { filename: 'Updated.pdf', contentType: 'application/pdf' })
+  assert.equal(replacement.status, 201)
+  assert.equal(replacement.body.data.originalName, 'Updated.pdf')
+  assert.equal((await readdir(resumeDirectory)).length, 1)
+
+  const removed = await request(app).delete(`/api/candidates/${candidate._id}/resume`)
+  assert.equal(removed.status, 204)
+  assert.equal((await readdir(resumeDirectory)).length, 0)
+  const withoutResume = await request(app).get('/api/candidates')
+  assert.equal(withoutResume.body.data[0].resume, undefined)
+  const missingResume = await request(app).get(`/api/candidates/${candidate._id}/resume`)
+  assert.equal(missingResume.status, 404)
+})
+
+test('candidate resume upload rejects unauthenticated, missing, oversized, and non-PDF files', async () => {
+  const candidate = await createCandidate()
+  const validPdf = Buffer.from('%PDF-1.7\nvalid')
+  const unauthorized = await supertest(app)
+    .post(`/api/candidates/${candidate._id}/resume`)
+    .attach('resume', validPdf, { filename: 'resume.pdf', contentType: 'application/pdf' })
+  assert.equal(unauthorized.status, 401)
+
+  const missingCandidate = await request(app)
+    .post(`/api/candidates/${new mongoose.Types.ObjectId()}/resume`)
+    .attach('resume', validPdf, { filename: 'resume.pdf', contentType: 'application/pdf' })
+  assert.equal(missingCandidate.status, 404)
+
+  const missingFile = await request(app).post(`/api/candidates/${candidate._id}/resume`)
+  assert.equal(missingFile.status, 400)
+
+  const unsupportedType = await request(app)
+    .post(`/api/candidates/${candidate._id}/resume`)
+    .attach('resume', Buffer.from('not a PDF'), { filename: 'resume.txt', contentType: 'text/plain' })
+  assert.equal(unsupportedType.status, 415)
+
+  const spoofedPdf = await request(app)
+    .post(`/api/candidates/${candidate._id}/resume`)
+    .attach('resume', Buffer.from('not really PDF'), { filename: 'resume.pdf', contentType: 'application/pdf' })
+  assert.equal(spoofedPdf.status, 415)
+
+  const oversized = await request(app)
+    .post(`/api/candidates/${candidate._id}/resume`)
+    .attach('resume', Buffer.alloc((5 * 1024 * 1024) + 1), {
+      filename: 'large.pdf',
+      contentType: 'application/pdf',
+    })
+  assert.equal(oversized.status, 413)
+  assert.equal((await readdir(resumeDirectory)).length, 0)
+})
+
+test('deleting a candidate also removes the candidate resume file', async () => {
+  const candidate = await createCandidate()
+  await request(app)
+    .post(`/api/candidates/${candidate._id}/resume`)
+    .attach(
+      'resume',
+      Buffer.from('%PDF-1.7\ncandidate resume'),
+      { filename: 'resume.pdf', contentType: 'application/pdf' },
+    )
+    .expect(201)
+  assert.equal((await readdir(resumeDirectory)).length, 1)
+
+  await request(app).delete(`/api/candidates/${candidate._id}`).expect(204)
+  assert.equal((await readdir(resumeDirectory)).length, 0)
 })
 
 test('health endpoint reports the active MongoDB connection', async () => {
