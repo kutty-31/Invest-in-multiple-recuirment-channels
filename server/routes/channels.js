@@ -84,6 +84,29 @@ router.patch('/:id', async (request, response) => {
   return response.json({ data: channel })
 })
 
+router.put('/:id', async (request, response) => {
+  if (!isValidObjectId(request.params.id)) {
+    return response.status(400).json({ error: 'Channel ID is invalid.' })
+  }
+  if (!isRecord(request.body)) {
+    return response.status(400).json({ error: 'Request body must be a JSON object.' })
+  }
+  const unexpected = invalidFields(request.body, channelFields)
+  if (unexpected.length) {
+    return response.status(400).json({ error: `Unsupported field: ${unexpected.join(', ')}.` })
+  }
+
+  const channel = await RecruitingChannel.findById(request.params.id)
+  if (!channel) return response.status(404).json({ error: 'Recruiting channel not found.' })
+
+  const replacement = new RecruitingChannel(request.body)
+  for (const field of channelFields) {
+    channel.set(field, replacement.get(field))
+  }
+  await channel.save()
+  return response.json({ data: channel })
+})
+
 router.delete('/:id', async (request, response) => {
   if (!isValidObjectId(request.params.id)) {
     return response.status(400).json({ error: 'Channel ID is invalid.' })

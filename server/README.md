@@ -29,14 +29,14 @@ The API refuses to start without `MONGODB_URI` or if MongoDB is unreachable. The
 | --- | --- | --- |
 | GET | `/api/health` | Report API and MongoDB connection status |
 | GET, POST | `/api/channels` | List channels or create a channel |
-| GET, PATCH, DELETE | `/api/channels/:id` | Read, update, or delete/archive a channel |
+| GET, PATCH, PUT, DELETE | `/api/channels/:id` | Read, partially update, replace, or delete/archive a channel |
 | GET, POST | `/api/candidates` | List/filter candidates or create a candidate |
-| GET, PATCH, DELETE | `/api/candidates/:id` | Read, update, or delete a candidate |
+| GET, PATCH, PUT, DELETE | `/api/candidates/:id` | Read, partially update, replace, or delete a candidate |
 | POST | `/api/candidates/bulk` | Validate and create up to 100 candidates in one request |
 | GET | `/api/analytics/overview` | Read all-time totals, stage counts, and monthly hiring trends |
 | GET | `/api/analytics/channels` | Compare applicant volume, hires, hire rate, and candidate quality by channel |
 
-Candidate listing supports `stage`, `source`, `q`, `appliedFrom`, `appliedTo`, `page`, and `limit`. Lists return `{ data, pagination }`. Candidate responses populate the channel source. A channel that already has candidates is archived rather than removed. Bulk creation accepts `{ "candidates": [...] }`, validates every record and source before writing, and rejects invalid batches without inserting partial data; batches are limited to 100 records. The overview accepts an optional `months` parameter from 1 to 12 (default 6); it includes zero-count months and reports all-time totals separately. Channel analytics includes inactive channels and returns null for quality when a channel has no candidate records.
+Candidate listing supports `stage`, `source`, `q`, `appliedFrom`, `appliedTo`, `page`, and `limit`. Lists return `{ data, pagination }`. Candidate responses populate the channel source. PUT replaces all mutable fields; omitted optional fields are cleared and schema defaults are applied. PATCH remains available for partial updates. Candidate PUT requires a valid, existing `source`. A channel that already has candidates is archived rather than removed. Bulk creation accepts `{ "candidates": [...] }`, validates every record and source before writing, and rejects invalid batches without inserting partial data; batches are limited to 100 records. The overview accepts an optional `months` parameter from 1 to 12 (default 6); it includes zero-count months and reports all-time totals separately. Channel analytics includes inactive channels and returns null for quality when a channel has no candidate records.
 
 ## Validate
 
