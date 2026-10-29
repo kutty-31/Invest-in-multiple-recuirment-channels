@@ -2,6 +2,13 @@
 
 Talentwise is a responsive recruitment analytics dashboard for comparing hiring sources, monitoring the candidate funnel, and tracking candidate quality.
 
+## Mock UX Design
+
+Design preview: [Open the interactive Mock UX](https://raw.githack.com/kutty-31/Invest-in-multiple-recuirment-channels/feature/mock-ux-design/mock-ux.html)  
+Source: [mock-ux.html](https://github.com/kutty-31/Invest-in-multiple-recuirment-channels/blob/feature/mock-ux-design/mock-ux.html)
+
+This mock UX communicates the primary overview, channel comparison, candidate pipeline, and core hiring journeys. It uses sample data to show how people teams move from hiring insights to recruiting decisions.
+
 ## Run the app
 
 No build step, package installation, or framework is required. Open `index.html` in a modern browser, or use a local static-file server such as the VS Code Live Server extension.
