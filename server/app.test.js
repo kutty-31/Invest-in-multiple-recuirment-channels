@@ -302,6 +302,64 @@ test('channel PUT rejects invalid payloads and returns not found for missing IDs
   assert.equal(missing.status, 404)
 })
 
+test('channel candidate relationship returns only candidates referencing that channel', async () => {
+  const referral = await createChannel()
+  const careers = await createChannel({ name: 'Careers page', type: 'careers_page' })
+  await Candidate.create([
+    {
+      fullName: 'Referral Candidate',
+      role: 'Designer',
+      source: referral._id,
+      appliedAt: new Date('2026-10-01T00:00:00.000Z'),
+    },
+    {
+      fullName: 'Second Referral Candidate',
+      role: 'Engineer',
+      source: referral._id,
+      appliedAt: new Date('2026-10-02T00:00:00.000Z'),
+    },
+    {
+      fullName: 'Careers Candidate',
+      role: 'Analyst',
+      source: careers._id,
+    },
+  ])
+
+  const response = await request(app).get(`/api/channels/${referral._id}/candidates?limit=1`)
+
+  assert.equal(response.status, 200)
+  assert.equal(response.body.data.channel._id, referral._id)
+  assert.equal(response.body.data.channel.name, 'Employee referral')
+  assert.equal(response.body.data.candidates.length, 1)
+  assert.equal(response.body.data.candidates[0].fullName, 'Second Referral Candidate')
+  assert.equal(response.body.data.candidates[0].source, referral._id)
+  assert.deepEqual(response.body.pagination, { page: 1, limit: 1, total: 2, pages: 2 })
+
+  const secondPage = await request(app)
+    .get(`/api/channels/${referral._id}/candidates?page=2&limit=1`)
+  assert.equal(secondPage.status, 200)
+  assert.equal(secondPage.body.data.candidates[0].fullName, 'Referral Candidate')
+})
+
+test('channel candidate relationship validates IDs and pagination and handles empty relationships', async () => {
+  const channel = await createChannel()
+
+  const candidates = await request(app).get(`/api/channels/${channel._id}/candidates`)
+  assert.equal(candidates.status, 200)
+  assert.deepEqual(candidates.body.data.candidates, [])
+  assert.deepEqual(candidates.body.pagination, { page: 1, limit: 50, total: 0, pages: 0 })
+
+  const invalidId = await request(app).get('/api/channels/not-an-id/candidates')
+  assert.equal(invalidId.status, 400)
+
+  const invalidPage = await request(app).get(`/api/channels/${channel._id}/candidates?page=0`)
+  assert.equal(invalidPage.status, 400)
+
+  const missing = await request(app)
+    .get(`/api/channels/${new mongoose.Types.ObjectId()}/candidates`)
+  assert.equal(missing.status, 404)
+})
+
 test('candidate API validates channel references and persists populated candidate records', async () => {
   const channel = await createChannel()
   const unknownSource = await request(app)

@@ -49,6 +49,12 @@ const recruitingChannelSchema = new mongoose.Schema(
   },
 )
 
+recruitingChannelSchema.virtual('candidates', {
+  ref: 'Candidate',
+  localField: '_id',
+  foreignField: 'source',
+})
+
 recruitingChannelSchema.index({ name: 1 }, { unique: true })
 recruitingChannelSchema.index({ isActive: 1, type: 1 })
 
