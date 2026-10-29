@@ -35,6 +35,10 @@ No build step, package installation, or framework is required. Open `index.html`
 
 The Vite-powered React frontend prototype is in [`client/`](./client/). From that folder, install dependencies with `npm install` and run the development server with `npm run dev`. See [`client/README.md`](./client/README.md) for all available commands and requirements. This client currently uses sample data and is not connected to a backend.
 
+## Mongoose models
+
+Initial MongoDB models for recruiting channels and candidates are in [`server/models/`](./server/models/). From `server/`, run `npm install`, `npm run check`, and `npm test` to validate the schemas. The models are not yet connected to an API or database server.
+
 ## What’s included
 
 - Overview metrics for applicants, hires, hiring time, and cost per hire
