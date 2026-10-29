@@ -1,45 +1,73 @@
 import { useState } from 'react'
 import { qualityStars } from '../data/recruiting'
 
-const stages = ['Applied', 'Screening', 'Interview', 'Hired']
+const stages = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired']
 
-function CandidateTable({ candidates, onCandidateUpdate, onCandidateDelete, search }) {
+function CandidateTable({ candidates, channels, onCandidateUpdate, onCandidateDelete, search }) {
   const [editingCandidate, setEditingCandidate] = useState(null)
+  const [editingStage, setEditingStage] = useState('')
   const [deletingCandidate, setDeletingCandidate] = useState(null)
   const [message, setMessage] = useState('')
+  const [saving, setSaving] = useState(false)
   const query = search.trim().toLowerCase()
   const filteredCandidates = candidates.filter((candidate) =>
     [candidate.name, candidate.role, candidate.source, candidate.stage]
       .some((value) => value.toLowerCase().includes(query)),
   )
 
-  function saveCandidate(event) {
+  async function saveCandidate(event) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
     const updatedCandidate = {
       ...editingCandidate,
       name: formData.get('name').trim(),
+      email: formData.get('email').trim(),
       role: formData.get('role').trim(),
-      source: formData.get('source').trim(),
-      stage: formData.get('stage'),
+      sourceId: formData.get('source'),
+      source: channels.find((channel) => channel._id === formData.get('source'))?.name || '',
+      stage: editingStage,
       quality: Number(formData.get('quality')).toFixed(1),
+      appliedAt: formData.get('appliedAt'),
+      hiredAt: formData.get('hiredAt'),
     }
 
-    onCandidateUpdate(updatedCandidate)
-    setEditingCandidate(null)
-    setMessage(`${updatedCandidate.name} was updated.`)
+    setSaving(true)
+    try {
+      await onCandidateUpdate(updatedCandidate)
+      setEditingCandidate(null)
+      setMessage(`${updatedCandidate.name} was updated.`)
+    } catch (error) {
+      setMessage(`Could not update candidate: ${error.message}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     const deletedName = deletingCandidate.name
-    onCandidateDelete(deletingCandidate.id)
-    setDeletingCandidate(null)
-    setMessage(`${deletedName} was removed from the candidate pipeline.`)
+    setSaving(true)
+    try {
+      await onCandidateDelete(deletingCandidate.id)
+      setDeletingCandidate(null)
+      setMessage(`${deletedName} was removed from the candidate pipeline.`)
+    } catch (error) {
+      setMessage(`Could not delete candidate: ${error.message}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
     <>
-      <p className="sr-only" aria-live="polite">{message}</p>
+      {message && (
+        <p
+          className={message.startsWith('Could not') ? 'table-feedback table-feedback--error' : 'sr-only'}
+          role={message.startsWith('Could not') ? 'alert' : 'status'}
+          aria-live="polite"
+        >
+          {message}
+        </p>
+      )}
       <div className="table-scroll">
         <table className="data-table candidate-table">
           <thead>
@@ -75,7 +103,11 @@ function CandidateTable({ candidates, onCandidateUpdate, onCandidateDelete, sear
                     <button
                       className="candidate-action"
                       type="button"
-                      onClick={() => setEditingCandidate(candidate)}
+                      onClick={() => {
+                        setEditingCandidate(candidate)
+                        setEditingStage(candidate.stage)
+                        setMessage('')
+                      }}
                       aria-label={`Edit ${candidate.name}`}
                     >
                       Edit
@@ -131,13 +163,25 @@ function CandidateTable({ candidates, onCandidateUpdate, onCandidateDelete, sear
                 <input name="role" defaultValue={editingCandidate.role} required maxLength="100" />
               </label>
               <label>
+                Email
+                <input name="email" type="email" defaultValue={editingCandidate.email} maxLength="254" />
+              </label>
+              <label>
                 Recruiting source
-                <input name="source" defaultValue={editingCandidate.source} required maxLength="80" />
+                <select name="source" defaultValue={editingCandidate.sourceId} required>
+                  {channels.map((channel) => (
+                    <option key={channel._id} value={channel._id}>{channel.name}</option>
+                  ))}
+                </select>
               </label>
               <div className="form-row">
                 <label>
                   Stage
-                  <select name="stage" defaultValue={editingCandidate.stage}>
+                  <select
+                    name="stage"
+                    value={editingStage}
+                    onChange={(event) => setEditingStage(event.target.value)}
+                  >
                     {stages.map((stage) => <option key={stage}>{stage}</option>)}
                   </select>
                 </label>
@@ -154,12 +198,32 @@ function CandidateTable({ candidates, onCandidateUpdate, onCandidateDelete, sear
                   />
                 </label>
               </div>
+              <div className="form-row">
+                <label>
+                  Application date
+                  <input
+                    name="appliedAt"
+                    type="date"
+                    defaultValue={editingCandidate.appliedAt.slice(0, 10)}
+                    required
+                  />
+                </label>
+                <label>
+                  Hire date {editingStage === 'Hired' && <span aria-hidden="true">*</span>}
+                  <input
+                    name="hiredAt"
+                    type="date"
+                    defaultValue={editingCandidate.hiredAt ? editingCandidate.hiredAt.slice(0, 10) : ''}
+                    required={editingStage === 'Hired'}
+                  />
+                </label>
+              </div>
               <div className="dialog-actions">
-                <button className="dialog-button" type="button" onClick={() => setEditingCandidate(null)}>
+                <button className="dialog-button" type="button" onClick={() => setEditingCandidate(null)} disabled={saving}>
                   Cancel
                 </button>
-                <button className="dialog-button dialog-button--primary" type="submit">
-                  Save changes
+                <button className="dialog-button dialog-button--primary" type="submit" disabled={saving}>
+                  {saving ? 'Saving…' : 'Save changes'}
                 </button>
               </div>
             </form>
@@ -179,14 +243,14 @@ function CandidateTable({ candidates, onCandidateUpdate, onCandidateDelete, sear
             <p className="section-kicker">REMOVE CANDIDATE</p>
             <h2 id="delete-candidate-title">Delete {deletingCandidate.name}?</h2>
             <p id="delete-candidate-description">
-              This removes the candidate from this session’s pipeline. This action cannot be undone.
+              This permanently removes the candidate from your recruiting workspace. This action cannot be undone.
             </p>
             <div className="dialog-actions">
-              <button className="dialog-button" type="button" onClick={() => setDeletingCandidate(null)}>
+              <button className="dialog-button" type="button" onClick={() => setDeletingCandidate(null)} disabled={saving}>
                 Cancel
               </button>
-              <button className="dialog-button dialog-button--danger" type="button" onClick={confirmDelete}>
-                Delete candidate
+              <button className="dialog-button dialog-button--danger" type="button" onClick={confirmDelete} disabled={saving}>
+                {saving ? 'Deleting…' : 'Delete candidate'}
               </button>
             </div>
           </section>

@@ -2,8 +2,10 @@ import cors from 'cors'
 import express from 'express'
 import mongoose from 'mongoose'
 import analyticsRouter from './routes/analytics.js'
+import authRouter from './routes/auth.js'
 import candidatesRouter from './routes/candidates.js'
 import channelsRouter from './routes/channels.js'
+import { requireAuth } from './middleware/requireAuth.js'
 
 const app = express()
 
@@ -23,9 +25,10 @@ app.get('/api/health', (request, response) => {
   })
 })
 
-app.use('/api/candidates', candidatesRouter)
-app.use('/api/channels', channelsRouter)
-app.use('/api/analytics', analyticsRouter)
+app.use('/api/auth', authRouter)
+app.use('/api/candidates', requireAuth, candidatesRouter)
+app.use('/api/channels', requireAuth, channelsRouter)
+app.use('/api/analytics', requireAuth, analyticsRouter)
 
 app.use((request, response) => {
   response.status(404).json({ error: 'API route not found.' })

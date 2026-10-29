@@ -2,6 +2,10 @@ import CandidateTable from './CandidateTable'
 
 function CandidatePipeline({
   candidates,
+  channels,
+  loadState,
+  loadError,
+  onRetry,
   onCandidateUpdate,
   onCandidateDelete,
   search,
@@ -26,13 +30,23 @@ function CandidatePipeline({
           />
         </label>
       </div>
-      <CandidateTable
-        candidates={candidates}
-        onCandidateUpdate={onCandidateUpdate}
-        onCandidateDelete={onCandidateDelete}
-        search={search}
-      />
-      <p className="panel-footnote">Showing sample candidate records · Changes are stored in this session only</p>
+      {loadState === 'loading' && <p className="pipeline-status" role="status">Loading candidates and recruiting sources…</p>}
+      {loadState === 'error' && (
+        <div className="pipeline-error" role="alert">
+          <span>{loadError}</span>
+          <button type="button" className="candidate-action" onClick={onRetry}>Try again</button>
+        </div>
+      )}
+      {loadState === 'loaded' && (
+        <CandidateTable
+          candidates={candidates}
+          channels={channels}
+          onCandidateUpdate={onCandidateUpdate}
+          onCandidateDelete={onCandidateDelete}
+          search={search}
+        />
+      )}
+      <p className="panel-footnote">Candidate records are loaded from your recruiting workspace.</p>
     </section>
   )
 }

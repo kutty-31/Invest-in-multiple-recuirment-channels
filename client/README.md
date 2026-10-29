@@ -1,6 +1,6 @@
 # Talentwise React client
 
-The Talentwise client is a React frontend scaffolded with Vite. Its current screens are an interactive, sample-data prototype for the recruiting overview, channel performance comparison, and candidate pipeline. Candidate records can be edited or deleted from the Candidates screen; changes are held in React state for the current session and are not sent to the API or saved after reload.
+The Talentwise client is a React frontend scaffolded with Vite. The sign-in screen connects to the API's username/password authentication; candidate records are loaded from the authenticated API and edits/deletions are persisted to MongoDB. Overview metrics and channel comparisons remain illustrative sample data.
 
 ## Component structure
 
@@ -8,7 +8,8 @@ The Talentwise client is a React frontend scaffolded with Vite. Its current scre
 - `PageHeading.jsx` displays the active screen title and page actions.
 - `OverviewDashboard.jsx`, `ChannelsPage.jsx`, and `CandidatePipeline.jsx` compose the primary product screens.
 - `MetricCard.jsx`, `ChannelTable.jsx`, and `CandidateTable.jsx` are reusable data-display components.
-- `src/data/recruiting.js` contains the illustrative recruiting records used by the prototype.
+- `src/api/auth.js` provides authentication, candidate, and channel API requests.
+- `src/data/recruiting.js` contains illustrative records used by the sample-data overview.
 
 ## Requirements
 
@@ -25,6 +26,8 @@ npm run dev
 ```
 
 Vite prints a local development URL after the server starts.
+
+Start the API from `server/` with a configured MongoDB connection and `JWT_SECRET` before signing in. The client uses `http://localhost:5000/api` by default; set `VITE_API_URL` in a client `.env` file to override it.
 
 ## Validate
 
