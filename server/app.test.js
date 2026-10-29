@@ -1,13 +1,41 @@
 import assert from 'node:assert/strict'
 import { after, before, beforeEach, test } from 'node:test'
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import request from 'supertest'
+import supertest from 'supertest'
 import app from './app.js'
 import Candidate from './models/Candidate.js'
 import RecruitingChannel from './models/RecruitingChannel.js'
+import User from './models/User.js'
 
 let mongo
+const testSecret = 'test-secret-with-at-least-thirty-two-bytes'
+process.env.JWT_SECRET = testSecret
+const testToken = jwt.sign(
+  { username: 'test-user' },
+  testSecret,
+  {
+    algorithm: 'HS256',
+    subject: new mongoose.Types.ObjectId().toString(),
+    issuer: 'talentwise-api',
+    audience: 'talentwise-client',
+    expiresIn: '1h',
+  },
+)
+
+function request(appInstance) {
+  const client = supertest(appInstance)
+  const authorization = `Bearer ${testToken}`
+  return {
+    get: (path) => client.get(path).set('Authorization', authorization),
+    post: (path) => client.post(path).set('Authorization', authorization),
+    patch: (path) => client.patch(path).set('Authorization', authorization),
+    put: (path) => client.put(path).set('Authorization', authorization),
+    delete: (path) => client.delete(path).set('Authorization', authorization),
+  }
+}
 
 before(async () => {
   mongo = await MongoMemoryServer.create()
@@ -18,6 +46,7 @@ beforeEach(async () => {
   await Promise.all([
     Candidate.deleteMany({}),
     RecruitingChannel.deleteMany({}),
+    User.deleteMany({}),
   ])
 })
 
@@ -35,8 +64,116 @@ async function createChannel(overrides = {}) {
   return response.body.data
 }
 
+test('registration hashes passwords, normalizes usernames, and returns a usable access token', async () => {
+  const response = await supertest(app)
+    .post('/api/auth/register')
+    .send({ username: '  Talent.Admin  ', password: 'strong-pass-123' })
+
+  assert.equal(response.status, 201)
+  assert.deepEqual(response.body.data.user.username, 'talent.admin')
+  assert.equal(response.body.data.tokenType, 'Bearer')
+  assert.equal(response.body.data.expiresIn, 3600)
+  assert.ok(response.body.data.accessToken)
+  assert.equal(JSON.stringify(response.body).includes('passwordHash'), false)
+
+  const storedUser = await User.findOne({ username: 'talent.admin' }).select('+passwordHash')
+  assert.ok(storedUser)
+  assert.notEqual(storedUser.passwordHash, 'strong-pass-123')
+  assert.equal(await bcrypt.compare('strong-pass-123', storedUser.passwordHash), true)
+
+  const me = await supertest(app)
+    .get('/api/auth/me')
+    .set('Authorization', `Bearer ${response.body.data.accessToken}`)
+  assert.equal(me.status, 200)
+  assert.deepEqual(me.body.data, {
+    id: storedUser._id.toString(),
+    username: 'talent.admin',
+  })
+})
+
+test('registration validates credentials and rejects duplicate usernames', async () => {
+  const invalidUsername = await supertest(app)
+    .post('/api/auth/register')
+    .send({ username: 'bad user', password: 'strong-pass-123' })
+  assert.equal(invalidUsername.status, 400)
+
+  const shortPassword = await supertest(app)
+    .post('/api/auth/register')
+    .send({ username: 'valid-user', password: 'short' })
+  assert.equal(shortPassword.status, 400)
+
+  const unexpectedField = await supertest(app)
+    .post('/api/auth/register')
+    .send({ username: 'valid-user', password: 'strong-pass-123', role: 'admin' })
+  assert.equal(unexpectedField.status, 400)
+
+  await supertest(app)
+    .post('/api/auth/register')
+    .send({ username: 'Valid.User', password: 'strong-pass-123' })
+    .expect(201)
+  const duplicate = await supertest(app)
+    .post('/api/auth/register')
+    .send({ username: 'valid.user', password: 'another-pass-123' })
+  assert.equal(duplicate.status, 409)
+})
+
+test('login returns a token for valid credentials and a generic error otherwise', async () => {
+  await supertest(app)
+    .post('/api/auth/register')
+    .send({ username: 'recruiter', password: 'strong-pass-123' })
+    .expect(201)
+
+  const login = await supertest(app)
+    .post('/api/auth/login')
+    .send({ username: 'RECRUITER', password: 'strong-pass-123' })
+  assert.equal(login.status, 200)
+  assert.equal(login.body.data.user.username, 'recruiter')
+  assert.ok(login.body.data.accessToken)
+
+  const incorrectPassword = await supertest(app)
+    .post('/api/auth/login')
+    .send({ username: 'recruiter', password: 'incorrect-pass' })
+  assert.equal(incorrectPassword.status, 401)
+  assert.equal(incorrectPassword.body.error, 'Username or password is incorrect.')
+
+  const unknownUser = await supertest(app)
+    .post('/api/auth/login')
+    .send({ username: 'not-registered', password: 'incorrect-pass' })
+  assert.equal(unknownUser.status, 401)
+  assert.equal(unknownUser.body.error, incorrectPassword.body.error)
+})
+
+test('recruiting APIs reject missing and invalid tokens', async () => {
+  const missingToken = await supertest(app).get('/api/channels')
+  assert.equal(missingToken.status, 401)
+
+  const missingMeToken = await supertest(app).get('/api/auth/me')
+  assert.equal(missingMeToken.status, 401)
+
+  const invalidToken = await supertest(app)
+    .get('/api/analytics/overview')
+    .set('Authorization', 'Bearer invalid-token')
+  assert.equal(invalidToken.status, 401)
+
+  const expiredToken = jwt.sign(
+    { username: 'expired-user' },
+    testSecret,
+    {
+      algorithm: 'HS256',
+      subject: new mongoose.Types.ObjectId().toString(),
+      issuer: 'talentwise-api',
+      audience: 'talentwise-client',
+      expiresIn: -1,
+    },
+  )
+  const expired = await supertest(app)
+    .get('/api/candidates')
+    .set('Authorization', `Bearer ${expiredToken}`)
+  assert.equal(expired.status, 401)
+})
+
 test('health endpoint reports the active MongoDB connection', async () => {
-  const response = await request(app).get('/api/health')
+  const response = await supertest(app).get('/api/health')
 
   assert.equal(response.status, 200)
   assert.deepEqual(response.body, { status: 'ok', database: 'connected' })

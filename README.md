@@ -33,7 +33,7 @@ No build step, package installation, or framework is required. Open `index.html`
 
 ## React client
 
-The Vite-powered React frontend prototype is in [`client/`](./client/). From that folder, install dependencies with `npm install` and run the development server with `npm run dev`. See [`client/README.md`](./client/README.md) for all available commands and requirements. This client currently uses sample data and is not connected to a backend.
+The Vite-powered React frontend is in [`client/`](./client/). From that folder, install dependencies with `npm install` and run the development server with `npm run dev`. The sign-in screen and candidate management connect to the Express API; the overview and channel comparison screens continue to use sample data.
 
 ## Mongoose models
 
@@ -46,9 +46,10 @@ The Express API connects to MongoDB through `MONGODB_URI` and uses Mongoose to r
 - Recruiting-channel comparisons for volume, conversion, quality, and cost
 - A package comparison section with starter, growth, scale-up, and executive recruiting plans
 - Candidate search and a form for adding candidates to the pipeline
+- Username/password registration and sign-in with protected recruiting API access
 - Hire dates and time-to-hire tracking for successful hires
 - CSV export of candidate records in the selected reporting period
-- Local browser storage for candidates added from the form
+- Authenticated candidate updates and deletions persisted to MongoDB
 - Responsive layouts, keyboard-accessible controls, and small-screen navigation
 
-The dashboard uses an included sample dataset and locally stored candidate entries. It does not connect to an ATS, backend, or live recruiting data source.
+The overview and channel comparison use an included sample dataset. Candidate records are loaded from MongoDB through the authenticated API and updates/deletions are persisted there. The application does not connect to an external ATS.

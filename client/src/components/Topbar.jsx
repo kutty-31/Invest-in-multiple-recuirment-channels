@@ -1,4 +1,4 @@
-function Topbar({ pageTitle }) {
+function Topbar({ pageTitle, username, onSignOut }) {
   return (
     <header className="topbar">
       <div className="breadcrumbs">
@@ -6,7 +6,10 @@ function Topbar({ pageTitle }) {
         <span aria-hidden="true">/</span>
         <strong>{pageTitle}</strong>
       </div>
-      <span className="sample-badge"><i /> UX prototype · Sample data</span>
+      <div className="topbar-account">
+        <span className="account-name">{username}</span>
+        <button className="sign-out-button" type="button" onClick={onSignOut}>Sign out</button>
+      </div>
     </header>
   )
 }
