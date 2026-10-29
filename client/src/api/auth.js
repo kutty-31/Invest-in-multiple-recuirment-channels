@@ -31,6 +31,10 @@ function login(credentials) {
   return authenticate('login', credentials)
 }
 
+function loginWithGoogle(credential) {
+  return authenticate('google', { credential })
+}
+
 function toCandidateView(candidate) {
   const appliedAt = new Date(candidate.appliedAt)
   const daysSinceApplied = Math.max(0, Math.floor((Date.now() - appliedAt.getTime()) / 86400000))
@@ -89,4 +93,11 @@ function removeCandidate(candidateId, token) {
   })
 }
 
-export { getRecruitingData, login, register, removeCandidate, replaceCandidate }
+export {
+  getRecruitingData,
+  login,
+  loginWithGoogle,
+  register,
+  removeCandidate,
+  replaceCandidate,
+}

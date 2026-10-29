@@ -13,7 +13,7 @@ function getJwtSecret() {
 
 function signAccessToken(user) {
   return jwt.sign(
-    { username: user.username },
+    { username: user.displayName || user.username },
     getJwtSecret(),
     {
       algorithm: 'HS256',

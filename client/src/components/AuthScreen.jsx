@@ -1,12 +1,70 @@
-import { useState } from 'react'
-import { login, register } from '../api/auth'
+import { useEffect, useRef, useState } from 'react'
+import { login, loginWithGoogle, register } from '../api/auth'
 
 function AuthScreen({ onAuthenticated }) {
+  const googleButton = useRef(null)
   const [mode, setMode] = useState('login')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+
+  useEffect(() => {
+    if (!googleClientId) return undefined
+
+    let active = true
+    const renderGoogleButton = () => {
+      const googleIdentity = window.google?.accounts?.id
+      if (!active || !googleIdentity || !googleButton.current) return
+
+      googleButton.current.replaceChildren()
+      googleIdentity.initialize({
+        client_id: googleClientId,
+        callback: async ({ credential }) => {
+          setError('')
+          setSubmitting(true)
+          try {
+            const session = await loginWithGoogle(credential)
+            onAuthenticated(session)
+          } catch (requestError) {
+            setError(requestError.message)
+          } finally {
+            setSubmitting(false)
+          }
+        },
+      })
+      googleIdentity.renderButton(googleButton.current, {
+        theme: 'outline',
+        size: 'large',
+        shape: 'rectangular',
+        text: 'continue_with',
+        width: Math.min(360, googleButton.current.clientWidth),
+      })
+    }
+
+    let script = document.querySelector('script[src="https://accounts.google.com/gsi/client"]')
+    if (!script) {
+      script = document.createElement('script')
+      script.src = 'https://accounts.google.com/gsi/client'
+      script.async = true
+      script.defer = true
+      script.addEventListener('load', renderGoogleButton)
+      script.addEventListener('error', () => {
+        if (active) setError('Google sign-in could not be loaded. Please try again later.')
+      }, { once: true })
+      document.head.append(script)
+    } else if (window.google?.accounts?.id) {
+      renderGoogleButton()
+    } else {
+      script.addEventListener('load', renderGoogleButton, { once: true })
+    }
+
+    return () => {
+      active = false
+      script?.removeEventListener('load', renderGoogleButton)
+    }
+  }, [googleClientId, onAuthenticated])
 
   async function submit(event) {
     event.preventDefault()
@@ -92,7 +150,11 @@ function AuthScreen({ onAuthenticated }) {
             {submitting ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
           </button>
         </form>
-        <p className="auth-security-note">Your password is securely hashed and never stored in your browser.</p>
+        <div className="auth-divider"><span>OR CONTINUE WITH</span></div>
+        {googleClientId
+          ? <div ref={googleButton} className="google-signin-button" />
+          : <p className="google-config-note">Google sign-in requires a configured OAuth client ID.</p>}
+        <p className="auth-security-note">Passwords are securely hashed. Google credentials are verified by the API.</p>
       </section>
     </main>
   )
