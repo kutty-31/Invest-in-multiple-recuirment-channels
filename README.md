@@ -1,75 +1,138 @@
 # Talentwise
 
-Talentwise is a responsive recruitment analytics dashboard for comparing hiring sources, monitoring the candidate funnel, and tracking candidate quality.
+Talentwise is a recruitment-channel analytics and candidate pipeline application for recruiters and hiring teams.
 
-## Capstone Project Idea
+## Problem statement
 
-Talentwise will grow into a MERN recruitment-channel intelligence platform for recruiters, people leads, and hiring managers. It will bring candidate pipeline and channel performance data together so teams can compare application volume, hire conversion, candidate quality, time to hire, and recruitment cost, then make better-informed sourcing decisions.
+Hiring teams often spread candidate and recruiting-source information across spreadsheets and tools. This makes it difficult to compare sourcing channels, follow candidates through the hiring process, and understand hiring cost and quality.
 
-The initial capstone scope includes a recruiting performance dashboard, channel comparison, candidate pipeline management, and actionable insights. The current dashboard is a front-end concept using sample data; the capstone plan below covers the intended full-stack implementation.
+## Proposed solution
 
-## Day-by-Day Capstone Plan
+Talentwise provides a React dashboard for recruitment insights and candidate workflows, backed by an Express API and MongoDB. Teams can manage candidate and recruiting-channel records, review source performance, and securely access résumé files. An optional AI assistant completes job titles while editing candidate records.
 
-| Day | Plan |
-| --- | --- |
-| Day 1 | Confirm project scope, user needs, success measures, user journeys, and the initial UX wireframes. |
-| Day 2 | Design MongoDB models for candidates, recruiting channels, and hiring activity; scaffold the Express and React applications. |
-| Day 3 | Build the backend API and connect it to MongoDB; implement candidate and recruiting-channel create, read, update, and delete operations. |
-| Day 4 | Build the React dashboard, summary metrics, hiring funnel, and channel comparison views using API data. |
-| Day 5 | Add candidate search and filters, stage updates, date-range controls, and report export. |
-| Day 6 | Test core user journeys and API behavior; fix defects and refine accessibility, responsive layouts, and error handling. |
-| Day 7 | Prepare sample data, deploy the application, document setup and usage, and review the completed capstone against its requirements. |
+## Technology stack
 
-## Mock UX Design
+- **Frontend:** React, Vite, Nginx
+- **Backend:** Node.js, Express, Mongoose
+- **Database:** MongoDB
+- **Authentication:** username/password with JWT; optional Google Identity Services
+- **AI autocomplete:** optional server-side OpenAI API integration
+- **Testing:** Vitest for client unit tests; Node.js test runner and `mongodb-memory-server` for API tests
+- **Deployment/containerization:** Netlify configuration, Render Blueprint, Dockerfiles, and Docker Compose
 
-Design preview: [Open the interactive Mock UX](https://raw.githack.com/kutty-31/Invest-in-multiple-recuirment-channels/feature/mock-ux-design/mock-ux.html)  
-Source: [mock-ux.html](https://github.com/kutty-31/Invest-in-multiple-recuirment-channels/blob/feature/mock-ux-design/mock-ux.html)
+## Key features
 
-This mock UX communicates the primary overview, channel comparison, candidate pipeline, and core hiring journeys. It uses sample data to show how people teams move from hiring insights to recruiting decisions.
+- Recruitment overview, funnel metrics, and channel comparison
+- Candidate and recruiting-channel REST APIs with create, read, update, and delete operations
+- Candidate-to-channel relationships and candidate pipeline search
+- Password-based registration/login, JWT-protected API access, and optional Google sign-in
+- Private PDF résumé upload, download, replacement, and removal
+- Optional AI-assisted job-title completion in the candidate editor
+- Bruno collection for exploring API endpoints
+- Responsive React interface and a Docker Compose setup for local development
 
-## Run the existing dashboard
+The overview metrics and channel comparisons currently use illustrative sample data. Candidate and channel CRUD operations use the API and MongoDB. The app does not connect to an external ATS.
 
-No build step, package installation, or framework is required. Open `index.html` in a modern browser, or use a local static-file server such as the VS Code Live Server extension.
+## Deployment status
 
-## React client
+**The deployment is not yet ready for reviewer use.** These links are provided for setup and status checking, not as verified live application links:
 
-The Vite-powered React frontend is in [`client/`](./client/). From that folder, install dependencies with `npm install` and run the development server with `npm run dev`. The sign-in screen supports username/password and Google authentication through the Express API; the overview and channel comparison screens continue to use sample data.
+- **Frontend:** No Netlify site has been published yet. [Open Netlify](https://app.netlify.com/start) and import this repository after signing in.
+- **Backend service:** [talentwise-api.onrender.com](https://talentwise-api.onrender.com) — the Render service is configured, but its latest deployment failed because `MONGODB_URI` has not been configured.
+- **Backend health check:** [talentwise-api.onrender.com/api/health](https://talentwise-api.onrender.com/api/health) — expected to return `{"status":"ok","database":"connected"}` after a successful deployment.
 
-## Mongoose models
+To finish deployment, configure a production MongoDB connection string as the Render service's `MONGODB_URI`, then redeploy. After deploying the frontend, set the API's `CLIENT_ORIGIN` to the exact Netlify site origin and redeploy the API. For Google sign-in, configure the same `GOOGLE_CLIENT_ID` in the frontend and API and allow the deployed frontend origin in Google Cloud. To enable AI autocomplete, set `OPENAI_API_KEY` on the API server; never put provider secrets in frontend variables or commit them.
 
-The Express API connects to MongoDB through `MONGODB_URI` and uses Mongoose to read and write recruiting channels and candidates. See [`server/README.md`](./server/README.md) for setup, API endpoints, and tests.
+Résumé PDFs are stored on the API service filesystem by default. Render's free service filesystem is ephemeral, so configure durable private storage before relying on résumé uploads in production.
 
-## Bruno API collection
+## Run locally
 
-The importable Bruno request collection is in [`bruno/talentwise/`](./bruno/talentwise/). It covers health, authentication, recruiting channels, candidates and résumé files, and analytics. See its README for local environment and token setup.
+### Requirements
 
-## Run the application with Docker
+- Node.js 22.12 or newer
+- npm
+- MongoDB running locally or a MongoDB connection string
 
-Install Docker Desktop, then copy `.env.docker.example` to `.env` in the repository root and set `JWT_SECRET` to a private random value of at least 32 bytes. You can generate one with `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`. From the repository root, start the full stack:
+1. Clone the repository:
+
+   ```powershell
+   git clone https://github.com/kutty-31/Invest-in-multiple-recuirment-channels.git
+   cd Invest-in-multiple-recuirment-channels
+   ```
+
+2. Configure the API:
+
+   ```powershell
+   cd server
+   Copy-Item .env.example .env
+   ```
+
+   Set `MONGODB_URI` to your MongoDB connection string. Set `JWT_SECRET` to a private random value of at least 32 bytes; generate one with:
+
+   ```powershell
+   node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
+   ```
+
+   `GOOGLE_CLIENT_ID` and `OPENAI_API_KEY` are optional. `OPENAI_MODEL` defaults to `gpt-4o-mini`. Keep all secrets private.
+
+3. Install API dependencies and start the API in the `server` directory:
+
+   ```powershell
+   npm ci
+   npm start
+   ```
+
+   The API listens at `http://localhost:5000`; its health endpoint is `http://localhost:5000/api/health`.
+
+4. In a second terminal, configure and start the frontend:
+
+   ```powershell
+   cd client
+   Copy-Item .env.example .env
+   npm ci
+   npm run dev
+   ```
+
+   The Vite development server prints its local URL (normally `http://localhost:5173`). Set `VITE_API_URL` in `client/.env` if the API is hosted elsewhere. To enable Google sign-in locally, set `VITE_GOOGLE_CLIENT_ID` and authorize the frontend origin in Google Cloud.
+
+## Run with Docker
+
+Install Docker Desktop, copy `.env.docker.example` to `.env` in the repository root, and set a private `JWT_SECRET` of at least 32 bytes. Then run:
 
 ```powershell
 docker compose up --build
 ```
 
-Open the frontend at [http://localhost:8080](http://localhost:8080). The API health check is at [http://localhost:5000/api/health](http://localhost:5000/api/health). Compose starts MongoDB, waits for it to become healthy before starting the API, and serves the production React build through Nginx. MongoDB data and uploaded résumés are kept in named local Docker volumes. To stop the stack, press `Ctrl+C` and run `docker compose down`; to also erase the local database and uploaded files, run `docker compose down --volumes`.
+Open the frontend at [http://localhost:8080](http://localhost:8080); the API health check is at [http://localhost:5000/api/health](http://localhost:5000/api/health). Compose starts MongoDB, the API, and the production frontend. MongoDB data and uploaded résumés use named local Docker volumes. Stop with `Ctrl+C`, then run `docker compose down`. To also delete the local database and résumé files, run `docker compose down --volumes`.
 
-The optional `GOOGLE_CLIENT_ID` in `.env` enables Google sign-in in the containerized frontend; configure the same ID in Google Cloud and in production API environments. The local sample secret and MongoDB setup are for development only; never use them for a public deployment.
+Set optional `GOOGLE_CLIENT_ID`, `OPENAI_API_KEY`, and `OPENAI_MODEL` in the root `.env` to enable those integrations. Do not use the development configuration as a public production deployment.
 
-AI role-title autocomplete uses the OpenAI API from the server. Set `OPENAI_API_KEY` (and optionally `OPENAI_MODEL`) in the API environment to enable it. The provider key is never sent to or embedded in the frontend.
+## Tests
 
-## What’s included
+Run the client tests, lint, and production build:
 
-- Overview metrics for applicants, hires, hiring time, and cost per hire
-- Date filters, a six-month hiring chart, and an application-to-hire funnel
-- Recruiting-channel comparisons for volume, conversion, quality, and cost
-- A package comparison section with starter, growth, scale-up, and executive recruiting plans
-- Candidate search and a form for adding candidates to the pipeline
-- Username/password registration and sign-in with protected recruiting API access
-- Optional AI-powered job-title autocomplete in candidate editing
-- Authenticated candidate PDF resume uploads, downloads, and removal
-- Hire dates and time-to-hire tracking for successful hires
-- CSV export of candidate records in the selected reporting period
-- Authenticated candidate updates and deletions persisted to MongoDB
-- Responsive layouts, keyboard-accessible controls, and small-screen navigation
+```powershell
+cd client
+npm test
+npm run lint
+npm run build
+```
 
-The overview and channel comparison use an included sample dataset. Candidate records are loaded from MongoDB through the authenticated API and updates/deletions are persisted there. The application does not connect to an external ATS.
+Run API syntax checks and tests:
+
+```powershell
+cd server
+npm run check
+npm test
+```
+
+## Supporting documentation
+
+- [Backend setup and API endpoint reference](./server/README.md)
+- [Frontend setup and deployment notes](./client/README.md)
+- [Bruno API collection](./bruno/talentwise/)
+- [Interactive Mock UX](https://raw.githack.com/kutty-31/Invest-in-multiple-recuirment-channels/feature/mock-ux-design/mock-ux.html)
+
+## Walkthrough video
+
+**Pending:** record and upload the project walkthrough, then replace this note with a publicly viewable video link. Demonstrate the application workflows and explain the architecture, implementation decisions, deployment status, and lessons learned. Verify the share link in a signed-out browser before submitting.
