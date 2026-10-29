@@ -76,6 +76,8 @@ const candidateSchema = new mongoose.Schema(
   {
     timestamps: true,
     strict: 'throw',
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 )
 
